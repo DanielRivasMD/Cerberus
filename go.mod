@@ -1,4 +1,4 @@
-module github.com/DanielRivasMD/Kali
+module github.com/DanielRivasMD/Cerberus
 
 go 1.22.0
 

@@ -36,16 +36,16 @@ var ()
 
 // rootCmd
 var rootCmd = &cobra.Command{
-	Use:   "kali",
+	Use:   "cerberus",
 	Short: "",
 	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
 
-` + chalk.Cyan.Color("kali") + chalk.Blue.Color(`
+` + chalk.Cyan.Color("cerberus") + chalk.Blue.Color(`
 
 `) + ``,
 
 	Example: `
-` + chalk.Cyan.Color("kali") + ` help`,
+` + chalk.Cyan.Color("cerberus") + ` help`,
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
