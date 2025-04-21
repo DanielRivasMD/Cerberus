@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -41,6 +43,10 @@ var guardCmd = &cobra.Command{
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Run: func(cmd *cobra.Command, args []string) {
+    description, err := parseReadme("README.md")
+    checkErr(err)
+    fmt.Println("Extracted Description:\n", description)
+
 		
 	},
 }
