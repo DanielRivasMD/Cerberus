@@ -26,7 +26,9 @@ import (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // declarations
-var ()
+var (
+	repo string
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,11 +45,23 @@ var guardCmd = &cobra.Command{
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Run: func(cmd *cobra.Command, args []string) {
-    description, err := parseReadme("README.md")
-    checkErr(err)
-    fmt.Println("Extracted Description:\n", description)
+		files, err := listFiles(repo)
+		checkErr(err)
 
-		
+		readmeFound := false
+		for _, file := range files {
+			if file == "README.md" {
+				readmeFound = true
+				description, err := parseReadme(repo+"/"+file)
+				checkErr(err)
+				fmt.Println("Extracted Description:\n", description)
+				break
+			}
+		}
+
+		if !readmeFound {
+			fmt.Println("README.md not found in the directory.")
+		}
 	},
 }
 
@@ -58,6 +72,7 @@ func init() {
 	rootCmd.AddCommand(guardCmd)
 
 	// flags
+	guardCmd.Flags().StringVarP(&repo, "repo", "r", "", "Repository")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
