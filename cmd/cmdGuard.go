@@ -49,18 +49,28 @@ var guardCmd = &cobra.Command{
 		checkErr(err)
 
 		readmeFound := false
+		licenseFound := false
 		for _, file := range files {
 			if file == "README.md" {
 				readmeFound = true
 				description, err := parseReadme(repo+"/"+file)
 				checkErr(err)
 				fmt.Println("Extracted Description:\n", description)
-				break
+			}
+
+			if file == "LICENSE" {
+				licenseFound = true
+				licenseType, err := detectLicense(repo+"/"+file)
+				checkErr(err)
+				fmt.Println("License is: ", licenseType)
 			}
 		}
 
 		if !readmeFound {
 			fmt.Println("README.md not found in the directory.")
+		}
+		if !licenseFound {
+			fmt.Println("LICENSE not found in the directory.")
 		}
 	},
 }
