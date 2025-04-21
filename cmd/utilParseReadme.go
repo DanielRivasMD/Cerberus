@@ -5,50 +5,45 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
-  "bufio"
-  // "fmt"
-  "os"
-  "strings"
+	"bufio"
+	"os"
+	"strings"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // parseReadme extracts the content under "### Description"
 func parseReadme(filename string) (string, error) {
-  file, err := os.Open(filename)
-  if err != nil {
-    return "", err
-  }
-  defer file.Close()
+	file, err := os.Open(filename)
+	checkErr(err)
+	defer file.Close()
 
-  var descriptionLines []string
-  scanner := bufio.NewScanner(file)
-  inDescription := false
+	var descriptionLines []string
+	scanner := bufio.NewScanner(file)
+	inDescription := false
 
-  for scanner.Scan() {
-    line := strings.TrimSpace(scanner.Text())
+	for scanner.Scan() {
+	  line := strings.TrimSpace(scanner.Text())
 
-    // Check if we've reached "### Description"
-    if strings.HasPrefix(line, "### Description") {
-      inDescription = true
-      continue
-    }
+	  // check "## Overview"
+	  if strings.HasPrefix(line, "## Overview") {
+	    inDescription = true
+	    continue
+	  }
 
-    // Stop reading when we hit another heading (###)
-    if inDescription && strings.HasPrefix(line, "### ") {
-      break
-    }
+	  // stop reading when another heading (##)
+	  if inDescription && strings.HasPrefix(line, "## ") {
+	    break
+	  }
 
-    if inDescription {
-      descriptionLines = append(descriptionLines, line)
-    }
-  }
+	  if inDescription {
+	    descriptionLines = append(descriptionLines, line)
+	  }
+	}
 
-  if err := scanner.Err(); err != nil {
-    return "", err
-  }
+	checkErr(scanner.Err())
 
-  return strings.Join(descriptionLines, "\n"), nil
+	return strings.Join(descriptionLines, "\n"), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
