@@ -93,3 +93,14 @@ func init() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Calculates the age of the repository by fetching the first commit date
+func calculateRepoAge(repo string) (string, error) {
+    cmd := exec.Command("git", "-C", repo, "log", "--reverse", "--format=%ci")
+    output, err := cmd.Output()
+    if err != nil {
+        return "", err
+    }
+    return strings.TrimSpace(string(output)), nil // Parse and calculate age
+}
+
