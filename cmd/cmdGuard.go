@@ -368,4 +368,15 @@ func groupCommitsByInterval(commitDates string) map[string]int {
     return commitFrequency
 }
 
+// Calculates the average number of commits per month
+func calculateAverageCommits(commitFrequency map[string]int) float64 {
+    totalCommits := 0
+    for _, count := range commitFrequency {
+        totalCommits += count
+    }
+
+    // Total months in a year
+    return float64(totalCommits) / 12.0
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
