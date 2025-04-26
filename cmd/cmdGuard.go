@@ -96,7 +96,7 @@ var guardCmd = &cobra.Command{
     }
 
     // Fetch additional metrics
-    repoAge, err := calculateRepoAge(repo)
+    repoAge, err := repoAge(repo)
     checkErr(err)
     fmt.Println("Repo Age: ", repoAge)
 
@@ -136,43 +136,6 @@ func init() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func calculateRepoAge(repo string) (string, error) {
-    // Get the first commit's date using git log
-    cmd := exec.Command("git", "-C", repo, "log", "--reverse", "--format=%ci")
-    output, err := cmd.Output()
-    if err != nil {
-        return "", fmt.Errorf("failed to execute git command: %w", err)
-    }
-
-    // Split the output into individual lines (one per commit date)
-    commitDates := strings.Split(string(output), "\n")
-    if len(commitDates) == 0 || strings.TrimSpace(commitDates[0]) == "" {
-        return "", fmt.Errorf("no commit dates found in the repository")
-    }
-
-    // Use the first line (the oldest commit date)
-    firstCommitDateStr := strings.TrimSpace(commitDates[0])
-
-    // Parse the first commit date
-    layout := "2006-01-02 15:04:05 -0700" // Git commit date format
-    firstCommitDate, err := time.Parse(layout, firstCommitDateStr)
-    if err != nil {
-        return "", fmt.Errorf("failed to parse commit date: %w", err)
-    }
-
-    // Calculate the difference between the first commit date and the current date
-    currentDate := time.Now()
-    repoAge := currentDate.Sub(firstCommitDate)
-
-    // Format the age as a human-readable string (e.g., "3 years and 45 days")
-    years := int(repoAge.Hours() / (24 * 365))
-    days := int(repoAge.Hours()/(24)) % 365
-    formattedAge := fmt.Sprintf("%d years and %d days", years, days)
-
-    return formattedAge, nil
-}
-
 
 // Counts the total commits in the repository
 func countCommits(repo string) (int, error) {
