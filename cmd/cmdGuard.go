@@ -137,3 +137,13 @@ func calculateRepoSize(repo string) (int64, error) {
     return size, err
 }
 
+// Computes commit frequency, grouping by time intervals
+func calculateCommitFrequency(repo string) (map[string]int, error) {
+    cmd := exec.Command("git", "-C", repo, "log", "--format=%ci")
+    output, err := cmd.Output()
+    if err != nil {
+        return nil, err
+    }
+    return groupCommitsByInterval(string(output)), nil // Implement groupCommitsByInterval
+}
+
