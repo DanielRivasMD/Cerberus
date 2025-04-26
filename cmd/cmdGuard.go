@@ -308,16 +308,6 @@ func formatRepoSize(size int64) string {
     }
 }
 
-// Computes commit frequency, grouping by time intervals
-func calculateCommitFrequency(repo string) (map[string]int, error) {
-    cmd := exec.Command("git", "-C", repo, "log", "--format=%ci")
-    output, err := cmd.Output()
-    if err != nil {
-        return nil, err
-    }
-    return groupCommitsByInterval(string(output)), nil // Implement groupCommitsByInterval
-}
-
 func parseRemoteURL(remoteOutput string) string {
     // Split output by lines
     lines := strings.Split(remoteOutput, "\n")
@@ -366,6 +356,53 @@ func groupCommitsByInterval(commitDates string) map[string]int {
     }
 
     return commitFrequency
+}
+
+func calculateCommitFrequency(repoPath string, year int) (map[string]int, error) {
+    // Initialize a map with all months set to 0
+    commitFrequency := map[string]int{
+        fmt.Sprintf("%d-01", year): 0,
+        fmt.Sprintf("%d-02", year): 0,
+        fmt.Sprintf("%d-03", year): 0,
+        fmt.Sprintf("%d-04", year): 0,
+        fmt.Sprintf("%d-05", year): 0,
+        fmt.Sprintf("%d-06", year): 0,
+        fmt.Sprintf("%d-07", year): 0,
+        fmt.Sprintf("%d-08", year): 0,
+        fmt.Sprintf("%d-09", year): 0,
+        fmt.Sprintf("%d-10", year): 0,
+        fmt.Sprintf("%d-11", year): 0,
+        fmt.Sprintf("%d-12", year): 0,
+    }
+
+    // Use git log to get commit dates within the specified year
+    cmd := exec.Command("git", "-C", repoPath, "log", "--since", fmt.Sprintf("%d-01-01", year), "--until", fmt.Sprintf("%d-12-31", year), "--format=%ci")
+    output, err := cmd.Output()
+    if err != nil {
+        return nil, fmt.Errorf("failed to fetch commit dates: %w", err)
+    }
+
+    // Process the output and group by month
+    commitDates := strings.Split(string(output), "\n")
+    layout := "2006-01-02 15:04:05 -0700" // Git date format
+
+    for _, dateStr := range commitDates {
+        if strings.TrimSpace(dateStr) == "" {
+            continue // Skip empty lines
+        }
+
+        commitTime, err := time.Parse(layout, dateStr)
+        if err != nil {
+            fmt.Println("Error parsing date:", err)
+            continue
+        }
+
+        // Use "YYYY-MM" format for grouping by month
+        month := commitTime.Format("2006-01")
+        commitFrequency[month]++
+    }
+
+    return commitFrequency, nil
 }
 
 // Calculates the average number of commits per month
