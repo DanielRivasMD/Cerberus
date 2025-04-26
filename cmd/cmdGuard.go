@@ -103,7 +103,7 @@ var guardCmd = &cobra.Command{
     checkErr(err)
     fmt.Println("Number of Commits: ", commitCount)
 
-    remoteURL, err := getRemoteURL(repo)
+    remoteURL, err := getRemote(repo)
     checkErr(err)
     fmt.Println("Repo Remote: ", remoteURL)
 
@@ -135,16 +135,6 @@ func init() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Extracts repository remote URL
-func getRemoteURL(repo string) (string, error) {
-    cmd := exec.Command("git", "-C", repo, "remote", "-v")
-    output, err := cmd.Output()
-    if err != nil {
-        return "", err
-    }
-    return parseRemoteURL(string(output)), nil // Implement helper parseRemoteURL
-}
 
 // Parses repo size by calculating file sizes recursively
 func calculateRepoSize(repo string) (int64, error) {
