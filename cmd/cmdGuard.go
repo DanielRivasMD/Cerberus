@@ -147,3 +147,20 @@ func calculateCommitFrequency(repo string) (map[string]int, error) {
     return groupCommitsByInterval(string(output)), nil // Implement groupCommitsByInterval
 }
 
+func parseRemoteURL(remoteOutput string) string {
+    // Split output by lines
+    lines := strings.Split(remoteOutput, "\n")
+    for _, line := range lines {
+        // Check for 'origin' remote and extract URL
+        if strings.HasPrefix(line, "origin") {
+            parts := strings.Fields(line) // Split line into components
+            if len(parts) >= 2 {
+                // Remote URL is typically the second field
+                return parts[1]
+            }
+        }
+    }
+    // Return empty string if no URL is found
+    return ""
+}
+
