@@ -80,15 +80,15 @@ var guardCmd = &cobra.Command{
 			fmt.Println("LICENSE not found in the directory.")
 		}
 
-    // Get the tokei output
-    tokeiOutput, err := getTokeiOutput(repo)
-    if err != nil {
-        fmt.Println("Error:", err)
-        return
-    }
+		// tokei
+		tokeiOut, tokeiErr, ε := execCmdCapture("tokei", "-C")
+		checkErr(ε)
+
+		fmt.Println(tokeiOut)
+		fmt.Println(tokeiErr)
 
     // Parse and retrieve the most common language
-    result, err := parseTokeiOutputWithPercentages(tokeiOutput)
+    result, err := parseTokeiOutputWithPercentages(tokeiOut)
     if err != nil {
         fmt.Println("Error:", err)
     } else {
