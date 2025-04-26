@@ -136,6 +136,51 @@ func getTokeiOutput(repoPath string) (string, error) {
     return string(output), nil
 }
 
+func parseTokeiOutput(tokeiOutput string) (string, error) {
+    lines := strings.Split(tokeiOutput, "\n")
+    var totalFiles int
+    var mostCommonLang string
+    var mostCommonFiles int
+
+    for _, line := range lines {
+        // Skip separator lines
+        if strings.HasPrefix(line, "=") || strings.TrimSpace(line) == "" {
+            continue
+        }
+
+        // Split the line into parts
+        parts := strings.Fields(line)
+        if len(parts) < 2 {
+            continue
+        }
+
+        // Parse the file count
+        files, err := strconv.Atoi(parts[1]) // `parts[1]` is the file count
+        if err != nil {
+            continue // Skip lines that don't have a valid file count
+        }
+
+        // Check if this language has the most files
+        if files > mostCommonFiles {
+            mostCommonLang = parts[0]      // `parts[0]` is the language name
+            mostCommonFiles = files
+        }
+
+        // Update total files count
+        totalFiles += files
+    }
+
+    // Calculate the percentage for the most common language
+    if totalFiles == 0 {
+        return "", fmt.Errorf("total files count is zero, invalid data")
+    }
+    percentage := (float64(mostCommonFiles) / float64(totalFiles)) * 100
+
+    // Format the result
+    result := fmt.Sprintf("%s files: %d (%.2f%%)", mostCommonLang, mostCommonFiles, percentage)
+    return result, nil
+}
+
 func calculateRepoAge(repo string) (string, error) {
     // Get the first commit's date using git log
     cmd := exec.Command("git", "-C", repo, "log", "--reverse", "--format=%ci")
