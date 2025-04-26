@@ -44,6 +44,7 @@ var guardCmd = &cobra.Command{
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// TODO: extract using onefetch & tokei
 	Run: func(cmd *cobra.Command, args []string) {
 		files, err := listFiles(repo)
 		checkErr(err)
@@ -72,6 +73,12 @@ var guardCmd = &cobra.Command{
 		if !licenseFound {
 			fmt.Println("LICENSE not found in the directory.")
 		}
+
+		cmdTokei := `tokei`
+		execCmd(cmdTokei)
+
+		cmdOnefetch := `onefetch`
+		execCmd(cmdOnefetch)
 	},
 }
 
