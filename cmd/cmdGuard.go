@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -136,17 +135,6 @@ func init() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Counts the total commits in the repository
-func countCommits(repo string) (int, error) {
-    cmd := exec.Command("git", "-C", repo, "rev-list", "--count", "HEAD")
-    output, err := cmd.Output()
-    if err != nil {
-        return 0, err
-    }
-    commits, err := strconv.Atoi(strings.TrimSpace(string(output)))
-    return commits, err
-}
 
 // Extracts repository remote URL
 func getRemoteURL(repo string) (string, error) {
