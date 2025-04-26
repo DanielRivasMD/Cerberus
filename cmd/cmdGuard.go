@@ -115,3 +115,13 @@ func countCommits(repo string) (int, error) {
     return commits, err
 }
 
+// Extracts repository remote URL
+func getRemoteURL(repo string) (string, error) {
+    cmd := exec.Command("git", "-C", repo, "remote", "-v")
+    output, err := cmd.Output()
+    if err != nil {
+        return "", err
+    }
+    return parseRemoteURL(string(output)), nil // Implement helper parseRemoteURL
+}
+
