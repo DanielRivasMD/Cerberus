@@ -51,7 +51,6 @@ var guardCmd = &cobra.Command{
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// TODO: extract using onefetch & tokei
 	Run: func(cmd *cobra.Command, args []string) {
 		files, err := listFiles(repo)
 		checkErr(err)
@@ -325,39 +324,6 @@ func parseRemoteURL(remoteOutput string) string {
     }
     // Return empty string if no URL is found
     return ""
-}
-
-func groupCommitsByInterval(commitDates string) map[string]int {
-    // Create a map to store the commit frequency
-    commitFrequency := make(map[string]int)
-
-    // Split the input into individual dates
-    dates := strings.Split(commitDates, "\n")
-
-    // Define a time format matching the Git commit date output
-    layout := "2006-01-02 15:04:05 -0700"
-
-    for _, dateStr := range dates {
-        if strings.TrimSpace(dateStr) == "" {
-            continue // Skip empty lines
-        }
-
-        // Parse the commit date
-        commitTime, err := time.Parse(layout, dateStr)
-        if err != nil {
-            fmt.Println("Error parsing date:", err)
-            continue
-        }
-
-        // Group by interval: e.g., year-week or year-month
-        // Example: Use "2006-01" for year-month grouping
-        interval := commitTime.Format("2006-01")
-
-        // Increment the count for the interval
-        commitFrequency[interval]++
-    }
-
-    return commitFrequency
 }
 
 func calculateCommitFrequency(repoPath string, year int) (map[string]int, error) {
