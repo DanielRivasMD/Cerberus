@@ -69,15 +69,16 @@ func parseTokei(tokeiOutput string) (string, error) {
 	blanksPercentage := (float64(dominantBlanks) / float64(totalBlanks)) * 100
 
 	// format the result
-	result := fmt.Sprintf(
-		"%s %d (%.2f%%) %d (%.2f%%) %d (%.2f%%) %d (%.2f%%) %d (%.2f%%)",
-		dominantLanguage,
-		dominantFiles, filesPercentage,
-		dominantLines, linesPercentage,
-		dominantCode, codePercentage,
-		dominantComments, commentsPercentage,
-		dominantBlanks, blanksPercentage,
-	)
+result := fmt.Sprintf(
+    "%s %d (%d%%) %d (%d%%) %d (%d%%) %d (%d%%) %d (%d%%)",
+    dominantLanguage, 
+    dominantFiles, int(filesPercentage), 
+    dominantLines, int(linesPercentage), 
+    dominantCode, int(codePercentage), 
+    dominantComments, int(commentsPercentage), 
+    dominantBlanks, int(blanksPercentage),
+)
+
 	return result, nil
 }
 
