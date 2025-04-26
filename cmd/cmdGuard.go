@@ -116,10 +116,12 @@ var guardCmd = &cobra.Command{
 		humanReadableSize := formatRepoSize(repoSize)
 		fmt.Println("Human-readable repo size:", humanReadableSize)
 
-    commitFrequency, err := calculateCommitFrequency(repo)
+    commitFrequency, err := calculateCommitFrequency(repo, year)
     checkErr(err)
     fmt.Println("Commit Frequency: ", commitFrequency)
 
+        averageCommits := calculateAverageCommits(commitFrequency)
+        fmt.Printf("Average Commits Per Month: %.2f\n", averageCommits)
 	},
 }
 
