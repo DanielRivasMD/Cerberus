@@ -88,7 +88,7 @@ var guardCmd = &cobra.Command{
 		fmt.Println(tokeiErr)
 
     // Parse and retrieve the most common language
-    result, err := parseTokeiOutputWithPercentages(tokeiOut)
+    result, err := parseTokei(tokeiOut)
     if err != nil {
         fmt.Println("Error:", err)
     } else {
