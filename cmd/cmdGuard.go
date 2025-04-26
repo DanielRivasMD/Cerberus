@@ -106,6 +106,27 @@ var guardCmd = &cobra.Command{
 
 		averageCommits := averageCommits(commitFrequency)
 		fmt.Printf("Average Commits Per Month: %.2f\n", averageCommits)
+
+		stats := RepoStats{
+			Language: "Go (67%)",
+			Age:      "3y 45d",
+			Count:    105,
+			Remote:   "https://github.com/example/repo.git",
+			Lines:    1139,
+			Files:    58,
+			Size:     1500000, // In bytes
+			Frequency: map[string]int{
+				"2025-01": 12,
+				"2025-02": 8,
+				"2025-03": 15,
+				"2025-04": 20,
+				"2025-05": 18,
+				"2025-06": 10,
+			},
+		}
+
+		table := generateMD(stats, "ExampleRepo")
+		fmt.Println(table)
 	},
 }
 
