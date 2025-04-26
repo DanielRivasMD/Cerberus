@@ -34,6 +34,7 @@ import (
 // declarations
 var (
 	repo string
+    year int
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,6 +131,7 @@ func init() {
 
 	// flags
 	guardCmd.Flags().StringVarP(&repo, "repo", "r", "", "Repository")
+	guardCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
