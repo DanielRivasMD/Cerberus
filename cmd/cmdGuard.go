@@ -137,20 +137,6 @@ func init() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func getTokeiOutput(repoPath string) (string, error) {
-    // Execute the 'tokei' command on the specified repository path
-    cmd := exec.Command("tokei", "-C", repoPath)
-
-    // Capture the command's output
-    output, err := cmd.CombinedOutput() // Includes both stdout and stderr
-    if err != nil {
-        return "", fmt.Errorf("failed to execute tokei: %w. Output: %s", err, output)
-    }
-
-    // Convert the output to a string and return it
-    return string(output), nil
-}
-
 func calculateRepoAge(repo string) (string, error) {
     // Get the first commit's date using git log
     cmd := exec.Command("git", "-C", repo, "log", "--reverse", "--format=%ci")
