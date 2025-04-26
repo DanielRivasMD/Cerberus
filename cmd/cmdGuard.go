@@ -104,3 +104,14 @@ func calculateRepoAge(repo string) (string, error) {
     return strings.TrimSpace(string(output)), nil // Parse and calculate age
 }
 
+// Counts the total commits in the repository
+func countCommits(repo string) (int, error) {
+    cmd := exec.Command("git", "-C", repo, "rev-list", "--count", "HEAD")
+    output, err := cmd.Output()
+    if err != nil {
+        return 0, err
+    }
+    commits, err := strconv.Atoi(strings.TrimSpace(string(output)))
+    return commits, err
+}
+
