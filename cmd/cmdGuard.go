@@ -17,10 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"os"
 	"os/exec"
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -107,12 +105,8 @@ var guardCmd = &cobra.Command{
     checkErr(err)
     fmt.Println("Repo Remote: ", remoteURL)
 
-		repoSize, err := calculateRepoSize(repo)
-		checkErr(err)
-		fmt.Printf("Repo Size: %d bytes\n", repoSize)
-
-		humanReadableSize := formatRepoSize(repoSize)
-		fmt.Println("Human-readable repo size:", humanReadableSize)
+		size, err := repoSize(repo)
+		fmt.Println("Human-readable repo size:", size)
 
     commitFrequency, err := calculateCommitFrequency(repo, year)
     checkErr(err)
@@ -135,54 +129,6 @@ func init() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Parses repo size by calculating file sizes recursively
-func calculateRepoSize(repo string) (int64, error) {
-    var size int64
-    err := filepath.Walk(repo, func(_ string, info os.FileInfo, err error) error {
-        if err == nil && !info.IsDir() {
-            size += info.Size()
-        }
-        return err
-    })
-    return size, err
-}
-
-func formatRepoSize(size int64) string {
-    const (
-        KB = 1024
-        MB = KB * 1024
-        GB = MB * 1024
-    )
-
-    switch {
-    case size >= GB:
-        return fmt.Sprintf("%.2f GB", float64(size)/float64(GB))
-    case size >= MB:
-        return fmt.Sprintf("%.2f MB", float64(size)/float64(MB))
-    case size >= KB:
-        return fmt.Sprintf("%.2f KB", float64(size)/float64(KB))
-    default:
-        return fmt.Sprintf("%d bytes", size)
-    }
-}
-
-func parseRemoteURL(remoteOutput string) string {
-    // Split output by lines
-    lines := strings.Split(remoteOutput, "\n")
-    for _, line := range lines {
-        // Check for 'origin' remote and extract URL
-        if strings.HasPrefix(line, "origin") {
-            parts := strings.Fields(line) // Split line into components
-            if len(parts) >= 2 {
-                // Remote URL is typically the second field
-                return parts[1]
-            }
-        }
-    }
-    // Return empty string if no URL is found
-    return ""
-}
 
 func calculateCommitFrequency(repoPath string, year int) (map[string]int, error) {
     // Initialize a map with all months set to 0
