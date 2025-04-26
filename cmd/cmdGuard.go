@@ -88,7 +88,7 @@ var guardCmd = &cobra.Command{
     }
 
     // Parse and retrieve the most common language
-    result, err := parseTokeiOutput(tokeiOutput)
+    result, err := parseTokeiOutputWithPercentages(tokeiOutput)
     if err != nil {
         fmt.Println("Error:", err)
     } else {
@@ -136,7 +136,7 @@ func init() {
 
 func getTokeiOutput(repoPath string) (string, error) {
     // Execute the 'tokei' command on the specified repository path
-    cmd := exec.Command("tokei", repoPath)
+    cmd := exec.Command("tokei", "-C", repoPath)
 
     // Capture the command's output
     output, err := cmd.CombinedOutput() // Includes both stdout and stderr
@@ -148,11 +148,11 @@ func getTokeiOutput(repoPath string) (string, error) {
     return string(output), nil
 }
 
-func parseTokeiOutput(tokeiOutput string) (string, error) {
+func parseTokeiOutputWithPercentages(tokeiOutput string) (string, error) {
     lines := strings.Split(tokeiOutput, "\n")
-    var totalFiles int
-    var mostCommonLang string
-    var mostCommonFiles int
+    var totalFiles, totalLines, totalCode, totalComments, totalBlanks int
+    var dominantLanguage string
+    var dominantFiles, dominantLines, dominantCode, dominantComments, dominantBlanks int
 
     for _, line := range lines {
         // Skip separator lines
@@ -162,34 +162,58 @@ func parseTokeiOutput(tokeiOutput string) (string, error) {
 
         // Split the line into parts
         parts := strings.Fields(line)
-        if len(parts) < 2 {
+        if len(parts) < 6 { // Ensure the line has enough columns
             continue
         }
 
-        // Parse the file count
-        files, err := strconv.Atoi(parts[1]) // `parts[1]` is the file count
-        if err != nil {
-            continue // Skip lines that don't have a valid file count
+        if strings.ToLower(parts[0]) == "total" { // Parse the totals row
+            totalFiles, _ = strconv.Atoi(parts[1])
+            totalLines, _ = strconv.Atoi(parts[2])
+            totalCode, _ = strconv.Atoi(parts[3])
+            totalComments, _ = strconv.Atoi(parts[4])
+            totalBlanks, _ = strconv.Atoi(parts[5])
+            continue
         }
 
-        // Check if this language has the most files
-        if files > mostCommonFiles {
-            mostCommonLang = parts[0]      // `parts[0]` is the language name
-            mostCommonFiles = files
+        // Parse the data for each language
+        language := parts[0]
+        files, _ := strconv.Atoi(parts[1])
+        lines, _ := strconv.Atoi(parts[2])
+        code, _ := strconv.Atoi(parts[3])
+        comments, _ := strconv.Atoi(parts[4])
+        blanks, _ := strconv.Atoi(parts[5])
+
+        // Update the dominant language if this one has more files
+        if files > dominantFiles {
+            dominantLanguage = language
+            dominantFiles = files
+            dominantLines = lines
+            dominantCode = code
+            dominantComments = comments
+            dominantBlanks = blanks
         }
-
-        // Update total files count
-        totalFiles += files
     }
 
-    // Calculate the percentage for the most common language
-    if totalFiles == 0 {
-        return "", fmt.Errorf("total files count is zero, invalid data")
+    // Calculate percentages for the dominant language
+    if totalFiles == 0 || totalLines == 0 || totalCode == 0 || totalComments == 0 || totalBlanks == 0 {
+        return "", fmt.Errorf("total counts are zero, invalid data")
     }
-    percentage := (float64(mostCommonFiles) / float64(totalFiles)) * 100
+    filesPercentage := (float64(dominantFiles) / float64(totalFiles)) * 100
+    linesPercentage := (float64(dominantLines) / float64(totalLines)) * 100
+    codePercentage := (float64(dominantCode) / float64(totalCode)) * 100
+    commentsPercentage := (float64(dominantComments) / float64(totalComments)) * 100
+    blanksPercentage := (float64(dominantBlanks) / float64(totalBlanks)) * 100
 
     // Format the result
-    result := fmt.Sprintf("%s files: %d (%.2f%%)", mostCommonLang, mostCommonFiles, percentage)
+    result := fmt.Sprintf(
+        "%s %d (%.2f%%) %d (%.2f%%) %d (%.2f%%) %d (%.2f%%) %d (%.2f%%)",
+        dominantLanguage,
+        dominantFiles, filesPercentage,
+        dominantLines, linesPercentage,
+        dominantCode, codePercentage,
+        dominantComments, commentsPercentage,
+        dominantBlanks, blanksPercentage,
+    )
     return result, nil
 }
 
