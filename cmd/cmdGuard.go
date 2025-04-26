@@ -47,23 +47,23 @@ var guardCmd = &cobra.Command{
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Run: func(cmd *cobra.Command, args []string) {
-		files, err := listFiles(repo)
-		checkErr(err)
+		files, ε := listFiles(repo)
+		checkErr(ε)
 
 		readmeFound := false
 		licenseFound := false
 		for _, file := range files {
 			if file == "README.md" {
 				readmeFound = true
-				description, err := parseReadme(repo + "/" + file)
-				checkErr(err)
+				description, ε := parseReadme(repo + "/" + file)
+				checkErr(ε)
 				fmt.Println("Extracted Description:\n", description)
 			}
 
 			if file == "LICENSE" {
 				licenseFound = true
-				licenseType, err := detectLicense(repo + "/" + file)
-				checkErr(err)
+				licenseType, ε := detectLicense(repo + "/" + file)
+				checkErr(ε)
 				fmt.Println("License is: ", licenseType)
 			}
 		}
@@ -76,38 +76,32 @@ var guardCmd = &cobra.Command{
 		}
 
 		// tokei
-		tokeiOut, tokeiErr, ε := execCmdCapture("tokei", "-C")
+		tokeiOut, _, ε := execCmdCapture("tokei", "-C")
 		checkErr(ε)
 
-		fmt.Println(tokeiOut)
-		fmt.Println(tokeiErr)
-
-		// Parse and retrieve the most common language
-		result, err := parseTokei(tokeiOut)
-		if err != nil {
-			fmt.Println("Error:", err)
-		} else {
-			fmt.Println(result)
-		}
+		// retrieve most common language
+		result, ε := parseTokei(tokeiOut)
+		checkErr(ε)
+		fmt.Println(result)
 
 		// Fetch additional metrics
-		repoAge, err := repoAge(repo)
-		checkErr(err)
+		repoAge, ε := repoAge(repo)
+		checkErr(ε)
 		fmt.Println("Repo Age: ", repoAge)
 
-		commitCount, err := countCommits(repo)
-		checkErr(err)
+		commitCount, ε := countCommits(repo)
+		checkErr(ε)
 		fmt.Println("Number of Commits: ", commitCount)
 
-		remoteURL, err := getRemote(repo)
-		checkErr(err)
+		remoteURL, ε := getRemote(repo)
+		checkErr(ε)
 		fmt.Println("Repo Remote: ", remoteURL)
 
-		size, err := repoSize(repo)
+		size, ε := repoSize(repo)
 		fmt.Println("Human-readable repo size:", size)
 
-		commitFrequency, err := commitFrequency(repo, year)
-		checkErr(err)
+		commitFrequency, ε := commitFrequency(repo, year)
+		checkErr(ε)
 		fmt.Println("Commit Frequency: ", commitFrequency)
 
 		averageCommits := averageCommits(commitFrequency)
