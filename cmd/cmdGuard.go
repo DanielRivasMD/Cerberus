@@ -17,7 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"os"
+	"os/exec"
 	"fmt"
+	"path/filepath"
+	"strings"
+	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
@@ -77,8 +83,27 @@ var guardCmd = &cobra.Command{
 		cmdTokei := `tokei`
 		execCmd(cmdTokei)
 
-		cmdOnefetch := `onefetch`
-		execCmd(cmdOnefetch)
+    // Fetch additional metrics
+    repoAge, err := calculateRepoAge(repo)
+    checkErr(err)
+    fmt.Println("Repo Age: ", repoAge)
+
+    commitCount, err := countCommits(repo)
+    checkErr(err)
+    fmt.Println("Number of Commits: ", commitCount)
+
+    remoteURL, err := getRemoteURL(repo)
+    checkErr(err)
+    fmt.Println("Repo Remote: ", remoteURL)
+
+    repoSize, err := calculateRepoSize(repo)
+    checkErr(err)
+    fmt.Printf("Repo Size: %d bytes\n", repoSize)
+
+    commitFrequency, err := calculateCommitFrequency(repo)
+    checkErr(err)
+    fmt.Println("Commit Frequency: ", commitFrequency)
+
 	},
 }
 
