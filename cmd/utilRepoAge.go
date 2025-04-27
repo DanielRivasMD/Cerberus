@@ -33,12 +33,17 @@ func repoAge(repo string) (string, error) {
 
 	// calculate difference
 	currentDate := time.Now()
-	repoAge := currentDate.Sub(firstCommitDate)
+	years := currentDate.Year() - firstCommitDate.Year()
+	months := int(currentDate.Month()) - int(firstCommitDate.Month())
 
-	// format
-	years := int(repoAge.Hours() / (24 * 365))
-	days := int(repoAge.Hours()/(24)) % 365
-	formattedAge := fmt.Sprintf("%dy %dd", years, days)
+	// Adjust for negative months (e.g., December - February)
+	if months < 0 {
+		years--
+		months += 12
+	}
+
+	// Format the result
+	formattedAge := fmt.Sprintf("%dy %dm", years, months)
 
 	return formattedAge, nil
 }
