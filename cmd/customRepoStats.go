@@ -29,13 +29,16 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	stats := RepoStats{}
 
 	// list files
-	files, err := listFiles(repo)
-	if err != nil {
-		return stats, err
+	files, ε := listFiles(repo)
+	if ε != nil {
+		return stats, ε
 	}
 
+	// declare switches
 	readmeFound := false
 	licenseFound := false
+
+	// iterate on files
 	for _, file := range files {
 		if file == "README.md" {
 			readmeFound = true
@@ -64,38 +67,38 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	}
 
 	// fetch repository metrics
-	tokeiOut, _, err := execCmdCapture("tokei", "-C")
-	if err != nil {
-		return stats, err
+	tokeiOut, _, ε := execCmdCapture("tokei", "-C")
+	if ε != nil {
+		return stats, ε
 	}
 
-	language, err := parseTokei(tokeiOut) // dominant language
-	if err != nil {
-		return stats, err
+	language, ε := parseTokei(tokeiOut) // dominant language
+	if ε != nil {
+		return stats, ε
 	}
 	stats.Language = language
 
-	repoAge, err := repoAge(repo)
-	if err != nil {
-		return stats, err
+	repoAge, ε := repoAge(repo)
+	if ε != nil {
+		return stats, ε
 	}
 	stats.Age = repoAge
 
-	commitCount, err := countCommits(repo)
-	if err != nil {
-		return stats, err
+	commitCount, ε := countCommits(repo)
+	if ε != nil {
+		return stats, ε
 	}
 	stats.Count = commitCount
 
-	remoteURL, err := getRemote(repo)
-	if err != nil {
-		return stats, err
+	remoteURL, ε := getRemote(repo)
+	if ε != nil {
+		return stats, ε
 	}
 	stats.Remote = remoteURL
 
-	linesOfCode, err := parseTokei(tokeiOut)
-	if err != nil {
-		return stats, err
+	linesOfCode, ε := parseTokei(tokeiOut)
+	if ε != nil {
+		return stats, ε
 	}
 	stats.Lines, _ = strconv.Atoi(linesOfCode)
 
