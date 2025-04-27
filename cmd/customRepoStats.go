@@ -14,11 +14,11 @@ import (
 type RepoStats struct {
 	Language  string
 	Age       string
-	Count     int
+	Commits   int
 	Remote    string
 	Lines     int
 	Files     int
-	Size      int
+	Size      string
 	Frequency map[string]int
 }
 
