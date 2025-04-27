@@ -38,7 +38,7 @@ func repoAge(repo string) (string, error) {
 	// format
 	years := int(repoAge.Hours() / (24 * 365))
 	days := int(repoAge.Hours()/(24)) % 365
-	formattedAge := fmt.Sprintf("%d years %d days", years, days)
+	formattedAge := fmt.Sprintf("%dy %dd", years, days)
 
 	return formattedAge, nil
 }
