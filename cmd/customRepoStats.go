@@ -18,7 +18,7 @@ type RepoStats struct {
 	Remote    string
 	Lines     int
 	Files     int
-	Size      int64
+	Size      int
 	Frequency map[string]int
 }
 
@@ -102,11 +102,11 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	}
 	stats.Lines, _ = strconv.Atoi(linesOfCode)
 
-	// size, err := repoSize(repo)
-	// if err != nil {
-	// 	return stats, err
-	// }
-	// stats.Size, _ = strconv.Atoi(size)
+	size, ε := repoSize(repo)
+	if ε != nil {
+		return stats, ε
+	}
+	stats.Size, _ = strconv.Atoi(size)
 
 	commitFrequency, err := commitFrequency(repo, year)
 	if err != nil {

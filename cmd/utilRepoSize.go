@@ -14,10 +14,10 @@ import (
 
 // parse repo size
 func repoSize(repo string) (string, error) {
-	var size int64
+	var size int
 	err := filepath.Walk(repo, func(_ string, info os.FileInfo, err error) error {
 		if err == nil && !info.IsDir() {
-			size += info.Size()
+			size += int(info.Size())
 		}
 		return err
 	})
@@ -26,7 +26,7 @@ func repoSize(repo string) (string, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func formatRepoSize(size int64) string {
+func formatRepoSize(size int) string {
 	const (
 		KB = 1024
 		MB = KB * 1024
