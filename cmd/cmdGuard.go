@@ -48,70 +48,17 @@ var guardCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// collect repo data
 		stats, ε := populateRepoStats(repo, year)
 		checkErr(ε)
 
-		files, ε := listFiles(repo)
-		checkErr(ε)
-
-		readmeFound := false
-		licenseFound := false
-		for _, file := range files {
-			if file == "README.md" {
-				readmeFound = true
-				description, ε := parseReadme(repo + "/" + file)
-				checkErr(ε)
-				fmt.Println("Extracted Description:\n", description)
-			}
-
-			if file == "LICENSE" {
-				licenseFound = true
-				licenseType, ε := detectLicense(repo + "/" + file)
-				checkErr(ε)
-				fmt.Println("License is: ", licenseType)
-			}
+		// change repo name report
+		if repo == "." {
+			repo = currentDir()
 		}
 
-		if !readmeFound {
-			fmt.Println("README.md not found in the directory.")
-		}
-		if !licenseFound {
-			fmt.Println("LICENSE not found in the directory.")
-		}
-
-		// tokei
-		tokeiOut, _, ε := execCmdCapture("tokei", "-C")
-		checkErr(ε)
-
-		// retrieve most common language
-		result, ε := parseTokei(tokeiOut)
-		checkErr(ε)
-		fmt.Println(result)
-
-		// Fetch additional metrics
-		repoAge, ε := repoAge(repo)
-		checkErr(ε)
-		fmt.Println("Repo Age: ", repoAge)
-
-		commitCount, ε := countCommits(repo)
-		checkErr(ε)
-		fmt.Println("Number of Commits: ", commitCount)
-
-		remoteURL, ε := getRemote(repo)
-		checkErr(ε)
-		fmt.Println("Repo Remote: ", remoteURL)
-
-		size, ε := repoSize(repo)
-		fmt.Println("Human-readable repo size:", size)
-
-		commitFrequency, ε := commitFrequency(repo, year)
-		checkErr(ε)
-		fmt.Println("Commit Frequency: ", commitFrequency)
-
-		averageCommits := averageCommits(commitFrequency)
-		fmt.Printf("Average Commits Per Month: %.2f\n", averageCommits)
-
-		table := generateMD(stats, "ExampleRepo")
+		// generate report
+		table := generateMD(stats, repo)
 		fmt.Println(table)
 	},
 }
@@ -123,7 +70,7 @@ func init() {
 	rootCmd.AddCommand(guardCmd)
 
 	// flags
-	guardCmd.Flags().StringVarP(&repo, "repo", "r", "", "Repository")
+	guardCmd.Flags().StringVarP(&repo, "repo", "r", ".", "Repository")
 	guardCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
 }
 
