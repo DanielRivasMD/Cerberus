@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,37 +72,43 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 		return stats, ε
 	}
 
+	// define language & lines
 	tokeiStats, language, ε := popualteTokei(tokeiOut)
 	if ε != nil {
 		return stats, ε
 	}
-	stats.Language = language
+	stats.Language = language + " " + strconv.Itoa(tokeiStats.Files.Percentage) + "%"
 	stats.Lines = tokeiStats.Lines.Number
 
+	// define age
 	age, ε := repoAge(repo)
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Age = age
 
+	// define number commits
 	commitCount, ε := countCommits(repo)
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Commits = commitCount
 
+	// define remote
 	remoteURL, ε := getRemote(repo)
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Remote = remoteURL
 
+	// define repo size
 	size, ε := repoSize(repo)
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Size = size
 
+	// define commit frecuency
 	commitFrequency, err := commitFrequency(repo, year)
 	if err != nil {
 		return stats, err
