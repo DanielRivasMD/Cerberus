@@ -58,7 +58,7 @@ var guardCmd = &cobra.Command{
 		}
 
 		// generate report
-		table := generateMD(stats, repo)
+		table := generateMD(stats, repo, year)
 		fmt.Println(table)
 	},
 }

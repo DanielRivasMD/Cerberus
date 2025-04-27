@@ -7,17 +7,16 @@ package cmd
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func generateMD(stats RepoStats, repoName string) string {
+func generateMD(stats RepoStats, repoName string, year int) string {
 	var builder strings.Builder
 
 	// header
-	builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
-	builder.WriteString("|-------------|-----------------------------------------------|--------|--------|----------|--------|---------|------|-----|-----|-----|-----|\n")
+	builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language   | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
+	builder.WriteString("|-------------|-----------------------------------------------|--------|--------|------------|--------|---------|------|-----|-----|-----|-----|\n")
 
 	// calculate average commits per month
 	repoAgeMonths := calculateRepoAgeInMonths(stats.Age)
@@ -26,28 +25,28 @@ func generateMD(stats RepoStats, repoName string) string {
 		averageCommits = stats.Commits / repoAgeMonths
 	}
 
-	// aggregate commits by quarter
+	// aggregate commits by quarter for the specified year
 	quarterlyCommits := map[string]int{
-		"Q1": stats.Frequency[fmt.Sprintf("%d-01", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-02", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-03", time.Now().Year())],
+		"Q1": stats.Frequency[fmt.Sprintf("%d-01", year)] +
+			stats.Frequency[fmt.Sprintf("%d-02", year)] +
+			stats.Frequency[fmt.Sprintf("%d-03", year)],
 
-		"Q2": stats.Frequency[fmt.Sprintf("%d-04", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-05", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-06", time.Now().Year())],
+		"Q2": stats.Frequency[fmt.Sprintf("%d-04", year)] +
+			stats.Frequency[fmt.Sprintf("%d-05", year)] +
+			stats.Frequency[fmt.Sprintf("%d-06", year)],
 
-		"Q3": stats.Frequency[fmt.Sprintf("%d-07", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-08", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-09", time.Now().Year())],
+		"Q3": stats.Frequency[fmt.Sprintf("%d-07", year)] +
+			stats.Frequency[fmt.Sprintf("%d-08", year)] +
+			stats.Frequency[fmt.Sprintf("%d-09", year)],
 
-		"Q4": stats.Frequency[fmt.Sprintf("%d-10", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-11", time.Now().Year())] +
-			stats.Frequency[fmt.Sprintf("%d-12", time.Now().Year())],
+		"Q4": stats.Frequency[fmt.Sprintf("%d-10", year)] +
+			stats.Frequency[fmt.Sprintf("%d-11", year)] +
+			stats.Frequency[fmt.Sprintf("%d-12", year)],
 	}
 
 	// data row
 	builder.WriteString(fmt.Sprintf(
-		"| %-11s | %-45s | %-6d | %-6s | %-8s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
+		"| %-11s | %-45s | %-6d | %-6s | %-10s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
 		repoName,
 		stats.Remote,
 		stats.Commits,
