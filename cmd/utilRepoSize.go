@@ -35,11 +35,11 @@ func formatRepoSize(size int) string {
 
 	switch {
 	case size >= GB:
-		return fmt.Sprintf("%.2f GB", float64(size)/float64(GB))
+		return fmt.Sprintf("%d GB", size/GB)
 	case size >= MB:
-		return fmt.Sprintf("%.2f MB", float64(size)/float64(MB))
+		return fmt.Sprintf("%d MB", size/MB)
 	case size >= KB:
-		return fmt.Sprintf("%.2f KB", float64(size)/float64(KB))
+		return fmt.Sprintf("%d KB", size/KB)
 	default:
 		return fmt.Sprintf("%d bytes", size)
 	}
