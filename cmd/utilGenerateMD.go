@@ -16,18 +16,8 @@ func generateMD(stats RepoStats, repoName string) string {
 	var builder strings.Builder
 
 	// header
-	builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language | Lines  | Size    | Mean |")
-	for i := 1; i <= 12; i++ {
-		builder.WriteString(fmt.Sprintf("  %02d |", i))
-	}
-	builder.WriteString("\n")
-
-	// separator
-	builder.WriteString("|-------------|-----------------------------------------------|--------|--------|----------|--------|---------|------|")
-	for i := 1; i <= 12; i++ {
-		builder.WriteString("-----|")
-	}
-	builder.WriteString("\n")
+	builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
+	builder.WriteString("|-------------|-----------------------------------------------|--------|--------|----------|--------|---------|------|-----|-----|-----|-----|\n")
 
 	// calculate average commits per month
 	repoAgeMonths := calculateRepoAgeInMonths(stats.Age)
@@ -36,9 +26,28 @@ func generateMD(stats RepoStats, repoName string) string {
 		averageCommits = stats.Commits / repoAgeMonths
 	}
 
+	// aggregate commits by quarter
+	quarterlyCommits := map[string]int{
+		"Q1": stats.Frequency[fmt.Sprintf("%d-01", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-02", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-03", time.Now().Year())],
+
+		"Q2": stats.Frequency[fmt.Sprintf("%d-04", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-05", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-06", time.Now().Year())],
+
+		"Q3": stats.Frequency[fmt.Sprintf("%d-07", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-08", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-09", time.Now().Year())],
+
+		"Q4": stats.Frequency[fmt.Sprintf("%d-10", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-11", time.Now().Year())] +
+			stats.Frequency[fmt.Sprintf("%d-12", time.Now().Year())],
+	}
+
 	// data row
 	builder.WriteString(fmt.Sprintf(
-		"| %-11s | %-45s | %-6d | %-6s | %-8s | %-6d | %-7s | %-4d |",
+		"| %-11s | %-45s | %-6d | %-6s | %-8s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
 		repoName,
 		stats.Remote,
 		stats.Commits,
@@ -46,14 +55,12 @@ func generateMD(stats RepoStats, repoName string) string {
 		stats.Language,
 		stats.Lines,
 		stats.Size,
-		averageCommits, // average commits per month
+		averageCommits,         // average commits per month
+		quarterlyCommits["Q1"], // Q1 commits
+		quarterlyCommits["Q2"], // Q2 commits
+		quarterlyCommits["Q3"], // Q3 commits
+		quarterlyCommits["Q4"], // Q4 commits
 	))
-	for i := 1; i <= 12; i++ {
-		month := fmt.Sprintf("%d-%02d", time.Now().Year(), i) // format: YYYY-MM
-		monthCommits := stats.Frequency[month]                // month frequency
-		builder.WriteString(fmt.Sprintf(" %-3d |", monthCommits))
-	}
-	builder.WriteString("\n")
 
 	return builder.String()
 }
