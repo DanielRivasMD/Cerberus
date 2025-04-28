@@ -23,22 +23,22 @@ func parseReadme(filename string) (string, error) {
 	inDescription := false
 
 	for scanner.Scan() {
-	  line := strings.TrimSpace(scanner.Text())
+		line := strings.TrimSpace(scanner.Text())
 
-	  // check "## Overview"
-	  if strings.HasPrefix(line, "## Overview") {
-	    inDescription = true
-	    continue
-	  }
+		// check "## Overview"
+		if strings.HasPrefix(line, "## Overview") {
+			inDescription = true
+			continue
+		}
 
-	  // stop reading when another heading (##)
-	  if inDescription && strings.HasPrefix(line, "## ") {
-	    break
-	  }
+		// stop reading when another heading (##)
+		if inDescription && strings.HasPrefix(line, "## ") {
+			break
+		}
 
-	  if inDescription {
-	    descriptionLines = append(descriptionLines, line)
-	  }
+		if inDescription {
+			descriptionLines = append(descriptionLines, line)
+		}
 	}
 
 	checkErr(scanner.Err())

@@ -20,13 +20,13 @@ func detectLicense(filename string) (string, error) {
 
 	// mapping common license identifiers
 	licenseKeywords := map[string]string{
-		"mit license": "MIT",
-		"apache license": "Apache-2.0",
+		"mit license":                "MIT",
+		"apache license":             "Apache-2.0",
 		"gnu general public license": "GPL",
-		"bsd license": "BSD",
-		"mozilla public license": "MPL",
-		"creative commons": "CC",
-		"eclipse public license": "EPL",
+		"bsd license":                "BSD",
+		"mozilla public license":     "MPL",
+		"creative commons":           "CC",
+		"eclipse public license":     "EPL",
 	}
 
 	for keyword, licenseType := range licenseKeywords {
@@ -39,5 +39,3 @@ func detectLicense(filename string) (string, error) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
