@@ -1,0 +1,5 @@
+edit cmds:
+	- stats => generate markdown stats report
+	- describe => collect readme & licenses
+	- sync => clone or pull all repos
+	- register => collect all repo information for sync
