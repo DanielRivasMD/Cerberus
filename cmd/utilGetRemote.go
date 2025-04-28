@@ -12,7 +12,7 @@ import (
 
 // extracts repository remote URL
 func getRemote(repo string) (string, error) {
-	out, _, ε := execCmdCapture("git", "-C", repo, "remote", "-v")
+	out, _, ε := captureExecCmd("git", "-C", repo, "remote", "-v")
 	checkErr(ε)
 
 	return parseRemoteURL(string(out)), nil

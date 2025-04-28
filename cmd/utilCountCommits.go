@@ -13,7 +13,7 @@ import (
 
 // counts total commits
 func countCommits(repo string) (int, error) {
-	out, _, ε := execCmdCapture("git", "-C", repo, "rev-list", "--count", "HEAD")
+	out, _, ε := captureExecCmd("git", "-C", repo, "rev-list", "--count", "HEAD")
 	checkErr(ε)
 
 	commits, err := strconv.Atoi(strings.TrimSpace(string(out)))

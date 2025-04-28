@@ -67,7 +67,7 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	}
 
 	// fetch repository metrics
-	tokeiOut, _, ε := execCmdCapture("tokei", "-C")
+	tokeiOut, _, ε := captureExecCmd("tokei", "-C")
 	if ε != nil {
 		return stats, ε
 	}

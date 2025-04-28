@@ -14,7 +14,7 @@ import (
 
 func repoAge(repo string) (string, error) {
 	// get first commit
-	out, _, ε := execCmdCapture("git", "-C", repo, "log", "--reverse", "--format=%ci")
+	out, _, ε := captureExecCmd("git", "-C", repo, "log", "--reverse", "--format=%ci")
 	checkErr(ε)
 
 	// split output into individual lines

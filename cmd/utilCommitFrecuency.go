@@ -30,7 +30,7 @@ func commitFrequency(repoPath string, year int) (map[string]int, error) {
 	}
 
 	// get commit dates within specified year
-	out, _, ε := execCmdCapture("git", "-C", repoPath, "log", "--since", fmt.Sprintf("%d-01-01", year), "--until", fmt.Sprintf("%d-12-31", year), "--format=%ci")
+	out, _, ε := captureExecCmd("git", "-C", repoPath, "log", "--since", fmt.Sprintf("%d-01-01", year), "--until", fmt.Sprintf("%d-12-31", year), "--format=%ci")
 	checkErr(ε)
 
 	// process output & group by month
