@@ -15,8 +15,11 @@ func generateMD(stats RepoStats, repoName string, year int) string {
 	var builder strings.Builder
 
 	// header
-	builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language   | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
-	builder.WriteString("|-------------|-----------------------------------------------|--------|--------|------------|--------|---------|------|-----|-----|-----|-----|\n")
+	builder.WriteString("| Repo        | Commit | Age    | Language   | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
+	builder.WriteString("|-------------|--------|--------|------------|--------|---------|------|-----|-----|-----|-----|\n")
+
+	// builder.WriteString("| Repo        | Remote                                        | Commit | Age    | Language   | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
+	// builder.WriteString("|-------------|-----------------------------------------------|--------|--------|------------|--------|---------|------|-----|-----|-----|-----|\n")
 
 	// calculate average commits per month
 	repoAgeMonths := calculateRepoAgeInMonths(stats.Age)
@@ -46,9 +49,8 @@ func generateMD(stats RepoStats, repoName string, year int) string {
 
 	// data row
 	builder.WriteString(fmt.Sprintf(
-		"| %-11s | %-45s | %-6d | %-6s | %-10s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
+		"| %-11s | %-6d | %-6s | %-10s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
 		repoName,
-		stats.Remote,
 		stats.Commits,
 		stats.Age,
 		stats.Language,
