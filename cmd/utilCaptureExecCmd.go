@@ -11,22 +11,22 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func execCmdCapture(cmd string, args ...string) (string, string, error) {
+func captureExecCmd(cmd string, args ...string) (string, string, error) {
 	cmdRun := exec.Command(cmd, args...)
 
-		// capture buffer
-		var stdoutBuf bytes.Buffer
-		var stderrBuf bytes.Buffer
-		cmdRun.Stdout = &stdoutBuf
-		cmdRun.Stderr = &stderrBuf
+	// capture buffer
+	var stdoutBuf bytes.Buffer
+	var stderrBuf bytes.Buffer
+	cmdRun.Stdout = &stdoutBuf
+	cmdRun.Stderr = &stderrBuf
 
-		// Run the command
-		err := cmdRun.Run()
-		if err != nil {
-			return "", "", err
-		}
+	// run the command
+	err := cmdRun.Run()
+	if err != nil {
+		return "", "", err
+	}
 
-	// Return captured output as a string
+	// return output
 	return stdoutBuf.String(), stderrBuf.String(), nil
 }
 
