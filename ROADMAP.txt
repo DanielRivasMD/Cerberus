@@ -3,3 +3,6 @@ edit cmds:
 	- describe => collect readme & licenses
 	- sync => clone or pull all repos
 	- register => collect all repo information for sync
+
+if `.git` found => generate data for current path
+else => iterate on folders & collect data
