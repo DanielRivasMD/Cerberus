@@ -76,7 +76,7 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	if ε != nil {
 		return stats, ε
 	}
-	stats.Language = language + " " + strconv.Itoa(tokeiStats.Files.Percentage) + "%"
+	stats.Language = language + " " + strconv.Itoa(tokeiStats.Lines.Percentage) + "%"
 	stats.Lines = tokeiStats.Lines.Number
 
 	// define age
