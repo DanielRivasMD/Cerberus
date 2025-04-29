@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -48,18 +49,74 @@ var guardCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// collect repo data
-		stats, ε := populateRepoStats(repo, year)
-		checkErr(ε)
-
-		// change repo name report
-		if repo == "." {
-			repo = currentDir()
+	err := horus.CheckDirExist("nonexistent_dir", createDirectory)
+	if err != nil {
+		fmt.Println("Error:", err)
+		if herr, ok := horus.AsHerror(err); ok {
+			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+			if herr.Err != nil {
+				fmt.Printf("  Underlying Error: %v\n", herr.Err)
+			}
 		}
+	}
 
-		// generate report
-		table := generateMD(stats, repo, year)
-		fmt.Println(table)
+	err = horus.CheckDirExist("another_nonexistent_dir", logNotFound)
+	if err != nil {
+		fmt.Println("Error:", err)
+		if herr, ok := horus.AsHerror(err); ok {
+			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		}
+	}
+
+	err = horus.CheckDirExist("yet_another_nonexistent_dir", nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		if herr, ok := horus.AsHerror(err); ok {
+			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		}
+	}
+
+	err = horus.CheckDirExist("existing_dir", createDirectory)
+	if err != nil {
+		fmt.Println("Error:", err)
+		if herr, ok := horus.AsHerror(err); ok {
+			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		}
+	}
+
+		gitPresence := dirExist(".git")
+		// if err != nil {
+		// 	fmt.Println("Error processing config:", err)
+		// 	// if msg := horus.UserMessage(err); msg != "" {
+		// 	// 	fmt.Printf("  User Message: %s\n", msg)
+		// 	// }
+		// 	// if step, ok := horus.Detail(err, "step"); ok {
+		// 	// 	fmt.Printf("  Step: %v\n", step)
+		// 	// }
+		// }
+
+		if gitPresence {
+
+			// collect repo data
+			stats, ε := populateRepoStats(repo, year)
+			checkErr(ε)
+
+			// change repo name report
+			if repo == "." {
+				repo = currentDir()
+			}
+
+			// generate report
+			table := generateMD(stats, repo, year)
+			fmt.Println(table)
+		} else {
+
+			originalDir := recallDir()
+			println(originalDir)
+			dirs, _ := listFiles(originalDir)
+			println(dirs)
+
+		}
 	},
 }
 
