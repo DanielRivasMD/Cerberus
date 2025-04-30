@@ -12,9 +12,9 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func repoAge(repo string) (string, error) {
+func repoAge() (string, error) {
 	// get first commit
-	out, _, ε := captureExecCmd("git", "-C", repo, "log", "--reverse", "--format=%ci")
+	out, _, ε := captureExecCmd("git", "log", "--reverse", "--format=%ci")
 	checkErr(ε)
 
 	// split output into individual lines
