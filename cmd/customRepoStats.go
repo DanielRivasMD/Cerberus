@@ -5,25 +5,27 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"os"
 	"strconv"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// RepoStats represents the repository statistics.
 type RepoStats struct {
-	Language  string
-	Age       string
-	Commits   int
+	Language  string // Main programming language of the repository
+	Age       string // Age of the repository
+	Commits   int    // Total number of commits
 	Remote    string
-	Lines     int
+	Lines     int // Total lines of code
 	Files     int
-	Size      string
-	Frequency map[string]int
+	Size      string         // Size of the repository
+	Frequency map[string]int // Commit frequency by month (e.g., "2025-01": 10)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func populateRepoStats(repo string, year int) (RepoStats, error) {
+func populateRepoStats(year int) (RepoStats, error) {
 	// initialize RepoStats
 	stats := RepoStats{}
 
@@ -80,35 +82,38 @@ func populateRepoStats(repo string, year int) (RepoStats, error) {
 	stats.Lines = tokeiStats.Lines.Number
 
 	// define age
-	age, ε := repoAge(repo)
+	age, ε := repoAge()
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Age = age
 
 	// define number commits
-	commitCount, ε := countCommits(repo)
+	commitCount, ε := countCommits()
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Commits = commitCount
 
 	// define remote
-	remoteURL, ε := getRemote(repo)
+	remoteURL, ε := getRemote()
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Remote = remoteURL
 
+	cwd, _ := os.Getwd()
+	println(cwd)
+
 	// define repo size
-	size, ε := repoSize(repo)
+	size, ε := repoSize()
 	if ε != nil {
 		return stats, ε
 	}
 	stats.Size = size
 
 	// define commit frecuency
-	commitFrequency, err := commitFrequency(repo, year)
+	commitFrequency, err := commitFrequency(year)
 	if err != nil {
 		return stats, err
 	}
