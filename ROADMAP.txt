@@ -6,3 +6,5 @@ edit cmds:
 
 if `.git` found => generate data for current path
 else => iterate on folders & collect data
+
+add colors to markdown output
