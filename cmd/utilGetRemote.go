@@ -11,8 +11,8 @@ import (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // extracts repository remote URL
-func getRemote(repo string) (string, error) {
-	out, _, ε := captureExecCmd("git", "-C", repo, "remote", "-v")
+func getRemote() (string, error) {
+	out, _, ε := captureExecCmd("git", "remote", "-v")
 	checkErr(ε)
 
 	return parseRemoteURL(string(out)), nil
