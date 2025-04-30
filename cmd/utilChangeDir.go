@@ -7,18 +7,30 @@ package cmd
 import (
 	"fmt"
 	"os"
+
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// changeDir changes the current working directory to the specified path.
+// changeDir changes the current working directory to the specified path and reports errors using horus.
 func changeDir(newDir string) error {
 	err := os.Chdir(newDir)
 	if err != nil {
-		return fmt.Errorf("failed to change directory to '%s': %w", newDir, err)
+		// Create a categorized error using horus
+		herr := horus.NewCategorizedHerror(
+			"change directory",
+			"directory_error",
+			fmt.Sprintf("failed to change directory to '%s'", newDir),
+			err,
+			map[string]any{"target_directory": newDir},
+		)
+
+		// Optionally, log the error for debugging
+		fmt.Println(horus.FormatError(herr, horus.JSONFormatter))
+		return herr
 	}
-	// fmt.Printf("Successfully changed directory to: %s\n", newDir)
 	return nil
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
