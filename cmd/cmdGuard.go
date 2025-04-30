@@ -30,8 +30,8 @@ import (
 
 // declarations
 var (
-	repo string
-	year int
+	repository string
+	year       int
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,30 +72,32 @@ var guardCmd = &cobra.Command{
 
 // inGit function to be executed if '.git' is found
 func inGit() {
-	fmt.Println("'.git' directory found! Executing inGit...")
 
-	// collect repo data
-	stats, ε := populateRepoStats(repo, year)
-	checkErr(ε)
+	// Vectors to hold stats and repo names
+	var repoNames []string
 
-	// change repo name report
-	if repo == "." {
-		repo = currentDir()
+	// Change repo name report if the repo is "."
+	if repository == "." {
+		repository = currentDir()
 	}
 
-	// generate report
-	table := generateMD(stats, repo, year)
+	// collect repo
+	repoNames = append(repoNames, repository)
+
+	// Generate and print the final report
+	table := generateMD(repoNames, year)
 	fmt.Println(table)
 }
 
 // outGit function to be executed if '.git' is not found
 func outGit() {
-	fmt.Println("'.git' directory not found! Executing outGit...")
+	// fmt.Println("'.git' directory not found! Executing outGit...")
 
-	originalDir := recallDir()
-	println(originalDir)
-	dirs, _ := listFiles(originalDir)
-	println(dirs)
+	repoNames, _ := listDirs(repository)
+
+	// Generate and print the final report
+	table := generateMD(repoNames, year)
+	fmt.Println(table)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +107,7 @@ func init() {
 	rootCmd.AddCommand(guardCmd)
 
 	// flags
-	guardCmd.Flags().StringVarP(&repo, "repo", "r", ".", "Repository")
+	guardCmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
 	guardCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
 }
 
