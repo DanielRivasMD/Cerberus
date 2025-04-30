@@ -13,9 +13,9 @@ import (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // parse repo size
-func repoSize(repo string) (string, error) {
+func repoSize() (string, error) {
 	var size int
-	err := filepath.Walk(repo, func(_ string, info os.FileInfo, err error) error {
+	err := filepath.Walk(".", func(_ string, info os.FileInfo, err error) error {
 		if err == nil && !info.IsDir() {
 			size += int(info.Size())
 		}
