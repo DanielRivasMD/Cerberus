@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/DanielRivasMD/horus"
@@ -49,42 +50,126 @@ var guardCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-	err := horus.CheckDirExist("nonexistent_dir", createDirectory)
-	if err != nil {
-		fmt.Println("Error:", err)
-		if herr, ok := horus.AsHerror(err); ok {
-			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
-			if herr.Err != nil {
-				fmt.Printf("  Underlying Error: %v\n", herr.Err)
-			}
-		}
-	}
+		// Path to check for the '.git' directory
+		dirPath := ".git"
 
-	err = horus.CheckDirExist("another_nonexistent_dir", logNotFound)
-	if err != nil {
-		fmt.Println("Error:", err)
-		if herr, ok := horus.AsHerror(err); ok {
-			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
-		}
-	}
+		// Using horus library's CheckDirExist to check for '.git'
+		err := horus.CheckDirExist(dirPath, horus.LogNotFound("The '.git' directory is missing."))
 
-	err = horus.CheckDirExist("yet_another_nonexistent_dir", nil)
-	if err != nil {
-		fmt.Println("Error:", err)
-		if herr, ok := horus.AsHerror(err); ok {
-			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// Decide what to do based on the result
+		if err == nil {
+			inGit() // '.git' is found
+		} else if os.IsNotExist(err) || horus.IsHerror(err) {
+			outGit() // '.git' is not found or logged as missing
+		} else {
+			fmt.Println(horus.FormatError(err, horus.JSONFormatter)) // Handle unexpected errors
 		}
-	}
 
-	err = horus.CheckDirExist("existing_dir", createDirectory)
-	if err != nil {
-		fmt.Println("Error:", err)
-		if herr, ok := horus.AsHerror(err); ok {
-			fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
-		}
-	}
+		// // Path to check for the '.git' directory
+		// dirPath := ".git"
 
-		gitPresence := dirExist(".git")
+		// // Using horus library's CheckDirExist to check for '.git'
+		// err := horus.CheckDirExist(
+		// 	dirPath,
+		// 	horus.LogNotFound("The '.git' directory is missing."), // Log warning if not found
+		// )
+
+		// // Decide what to do based on the result
+		// if err != nil {
+		// 	// Handle the error if needed
+		// 	if os.IsNotExist(err) {
+		// 		outGit() // '.git' is not found
+		// 	} else {
+		// 		fmt.Println(horus.FormatError(err, horus.JSONFormatter)) // Other errors
+		// 	}
+		// } else {
+		// 	inGit() // '.git' is found
+		// }
+
+		// // // Example 1: Checking for a directory with a custom NotFoundAction
+		// dirPath := "test"
+		// err := horus.CheckDirExist(dirPath, createDir(dirPath))
+		// if err != nil {
+		// 	// Print error in JSON format
+		// 	fmt.Println(horus.FormatError(err, horus.JSONFormatter))
+		// }
+
+		// // Example 2: Logging a not-found resource
+		// logAction := horus.LogNotFound("This is a test resource that is missing.")
+		// err = logAction("./nonexistent_resource")
+		// if err != nil {
+		// 	fmt.Println(horus.FormatError(err, horus.JSONFormatter))
+		// }
+
+		// // directoryToCheck := ".git"
+
+		// // Define the action to take if the directory does NOT exist
+		// notFoundAction := horus.NotFoundAction(notGit) // Type conversion to match NotFoundAction
+
+		// err := horus.CheckDirExist(directoryToCheck, notFoundAction)
+		// if err != nil {
+		// 	fmt.Println("Error during directory check:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 	}
+		// 	fmt.Println("Failed to determine Git status due to an error.")
+		// 	os.Exit(1)
+		// 	return
+		// }
+
+		// If CheckDirExist returns nil, it means the initial check was successful.
+		// The directory either existed, or the notFoundAction ran without error.
+		// In this specific scenario where notGit doesn't create the directory,
+		// if we reach here, the directory likely existed.
+
+		// // Execute logic for when the directory exists.
+		// // We can assume it exists if CheckDirExist didn't return an error.
+		// inGit()
+
+		// err := horus.CheckDirExist("nonexistent_dir", createDirectory)
+		// if err != nil {
+		// 	fmt.Println("Error:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 		if herr.Err != nil {
+		// 			fmt.Printf("  Underlying Error: %v\n", herr.Err)
+		// 		}
+		// 	}
+		// }
+
+		// err = horus.CheckDirExist("another_nonexistent_dir", logNotFound)
+		// if err != nil {
+		// 	fmt.Println("Error:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 	}
+		// }
+
+		// err = horus.CheckDirExist("yet_another_nonexistent_dir", nil)
+		// if err != nil {
+		// 	fmt.Println("Error:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 	}
+		// }
+
+		// err = horus.CheckDirExist("existing_dir", createDirectory)
+		// if err != nil {
+		// 	fmt.Println("Error:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 	}
+		// }
+
+		// err := horus.CheckDirExist(".git", executeLogic)
+		// if err != nil {
+		// 	fmt.Println("Error:", err)
+		// 	if herr, ok := horus.AsHerror(err); ok {
+		// 		fmt.Printf("  Operation: %s, Message: %s, Details: %v\n", herr.Op, herr.Message, herr.Details)
+		// 	}
+		// }
+
+		// gitPresence := dirExist(".git")
 		// if err != nil {
 		// 	fmt.Println("Error processing config:", err)
 		// 	// if msg := horus.UserMessage(err); msg != "" {
@@ -95,29 +180,43 @@ var guardCmd = &cobra.Command{
 		// 	// }
 		// }
 
-		if gitPresence {
+		// if gitPresence {
 
-			// collect repo data
-			stats, ε := populateRepoStats(repo, year)
-			checkErr(ε)
+		// 	// collect repo data
+		// 	stats, ε := populateRepoStats(repo, year)
+		// 	checkErr(ε)
 
-			// change repo name report
-			if repo == "." {
-				repo = currentDir()
-			}
+		// 	// change repo name report
+		// 	if repo == "." {
+		// 		repo = currentDir()
+		// 	}
 
-			// generate report
-			table := generateMD(stats, repo, year)
-			fmt.Println(table)
-		} else {
+		// 	// generate report
+		// 	table := generateMD(stats, repo, year)
+		// 	fmt.Println(table)
+		// } else {
 
-			originalDir := recallDir()
-			println(originalDir)
-			dirs, _ := listFiles(originalDir)
-			println(dirs)
+		// 	originalDir := recallDir()
+		// 	println(originalDir)
+		// 	dirs, _ := listFiles(originalDir)
+		// 	println(dirs)
 
-		}
+		// }
 	},
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// inGit function to be executed if '.git' is found
+func inGit() {
+	fmt.Println("'.git' directory found! Executing inGit...")
+	// Add your specific logic here
+}
+
+// outGit function to be executed if '.git' is not found
+func outGit() {
+	fmt.Println("'.git' directory not found! Executing outGit...")
+	// Add your specific logic here
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
