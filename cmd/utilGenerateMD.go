@@ -76,7 +76,9 @@ func generateMD(repoNames []string, year int) string {
 	for _, repoName := range repoNames {
 
 		// change directory
-		changeDir(repoName)
+		if len(repoNames) > 1 {
+			changeDir(repoName)
+		}
 
 		// Collect repo data
 		statsItem, err := populateRepoStats(year)
