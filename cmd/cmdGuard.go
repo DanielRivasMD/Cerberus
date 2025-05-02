@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/DanielRivasMD/horus"
@@ -53,16 +52,21 @@ var guardCmd = &cobra.Command{
 		// Path to check for the '.git' directory
 		dirPath := ".git"
 
-		// Using horus library's CheckDirExist to check for '.git'
-		err := horus.CheckDirExist(dirPath, horus.LogNotFound("The '.git' directory is missing."))
+		// Check directory existence with a placeholder action in case of missing directory.
+		ok, err := horus.CheckDirExist(dirPath, horus.NullAction(), true)
+		if err != nil {
+			// handle error: maybe log it, stop execution, etc.
+		}
 
-		// Decide what to do based on the result
-		if err == nil {
-			inGit() // '.git' is found
-		} else if os.IsNotExist(err) || horus.IsHerror(err) {
+		if !ok {
+			// Directory doesn't exist even after our neutral action.
+			// Now you can list directories in the parent folder or take other actions.
 			outGit() // '.git' is not found or logged as missing
+			if err != nil {
+				// handle error listing directories
+			}
 		} else {
-			fmt.Println(horus.FormatError(err, horus.JSONFormatter)) // Handle unexpected errors
+			inGit() // '.git' is found
 		}
 
 	},
