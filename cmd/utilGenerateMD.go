@@ -1,4 +1,8 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 package cmd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
 	"fmt"
@@ -6,6 +10,8 @@ import (
 
 	"github.com/ttacon/chalk"
 )
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // generateHeader creates the Markdown table header.
 func generateHeader() string {
@@ -15,31 +21,7 @@ func generateHeader() string {
 	return builder.String()
 }
 
-// getColoredLanguage pads the input language string to the provided width,
-// then applies color based on its base language (first token).
-func getColoredLanguage(language string, width int) string {
-	// First, pad the entire language string to the required width.
-	padded := fmt.Sprintf("%-"+fmt.Sprintf("%d", width)+"s", language)
-	// Split the language string by spaces to determine the base language.
-	parts := strings.Split(language, " ")
-	baseLanguage := strings.ToLower(parts[0])
-	switch baseLanguage {
-	case "go":
-		return chalk.Blue.Color(padded)
-	case "julia":
-		return chalk.Magenta.Color(padded)
-	case "python":
-		return chalk.Green.Color(padded)
-	case "r":
-		return chalk.Cyan.Color(padded)
-	case "rust":
-		return chalk.Yellow.Color(padded)
-	case "shell":
-		return chalk.Red.Color(padded)
-	default:
-		return padded // Return uncolored if no match.
-	}
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // generateBody creates the Markdown table body for the provided repository statistics.
 func generateBody(stats RepoStats, repoName string, year int) string {
@@ -86,6 +68,8 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 	return builder.String()
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // generateMD creates the Markdown table for multiple repositories.
 func generateMD(repoNames []string, year int) string {
 	var builder strings.Builder
@@ -115,9 +99,41 @@ func generateMD(repoNames []string, year int) string {
 	return builder.String()
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// getColoredLanguage pads the input language string to the provided width,
+// then applies color based on its base language (first token).
+func getColoredLanguage(language string, width int) string {
+	// First, pad the entire language string to the required width.
+	padded := fmt.Sprintf("%-"+fmt.Sprintf("%d", width)+"s", language)
+	// Split the language string by spaces to determine the base language.
+	parts := strings.Split(language, " ")
+	baseLanguage := strings.ToLower(parts[0])
+	switch baseLanguage {
+	case "go":
+		return chalk.Blue.Color(padded)
+	case "julia":
+		return chalk.Magenta.Color(padded)
+	case "python":
+		return chalk.Green.Color(padded)
+	case "r":
+		return chalk.Cyan.Color(padded)
+	case "rust":
+		return chalk.Yellow.Color(padded)
+	case "shell":
+		return chalk.Red.Color(padded)
+	default:
+		return padded // Return uncolored if no match.
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // calculateRepoAgeInMonths calculates repository age in months given an "Xy Ym" format.
 func calculateRepoAgeInMonths(age string) int {
 	years, months := 0, 0
 	fmt.Sscanf(age, "%dy %dm", &years, &months) // Parse "Xy Ym" format.
 	return (years * 12) + months
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
