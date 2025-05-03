@@ -5,7 +5,6 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
-	"os"
 	"strconv"
 )
 
@@ -101,9 +100,6 @@ func populateRepoStats(year int) (RepoStats, error) {
 		return stats, ε
 	}
 	stats.Remote = remoteURL
-
-	cwd, _ := os.Getwd()
-	println(cwd)
 
 	// define repo size
 	size, ε := repoSize()
