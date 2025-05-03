@@ -35,9 +35,9 @@ var (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// guardCmd
-var guardCmd = &cobra.Command{
-	Use:   "guard",
+// statsCmd
+var statsCmd = &cobra.Command{
+	Use:   "stats",
 	Short: "" + chalk.Yellow.Color("") + ".",
 	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
 `,
@@ -109,11 +109,11 @@ func outGit() {
 
 // execute prior main
 func init() {
-	rootCmd.AddCommand(guardCmd)
+	rootCmd.AddCommand(statsCmd)
 
 	// flags
-	guardCmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
-	guardCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
+	statsCmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
+	statsCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
