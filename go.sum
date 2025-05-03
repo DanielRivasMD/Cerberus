@@ -1,5 +1,5 @@
-github.com/DanielRivasMD/horus v0.0.0-20250502141850-b45c9a43dfc6 h1:O9LT0m+GNL91KpwH0BjvK4/b34wvEBkqxkvp//CTePM=
-github.com/DanielRivasMD/horus v0.0.0-20250502141850-b45c9a43dfc6/go.mod h1:RxifFjF4J7o+TTS00sIgeWwbvZyQ57L4D2xTlEJle5Y=
+github.com/DanielRivasMD/horus v0.0.0-20250502212123-e10879ef19ed h1:mRw+CBy3N4sJ/T0v/K/4zTgjP/EZZVHRK1FV2exvDCg=
+github.com/DanielRivasMD/horus v0.0.0-20250502212123-e10879ef19ed/go.mod h1:RxifFjF4J7o+TTS00sIgeWwbvZyQ57L4D2xTlEJle5Y=
 github.com/atrox/homedir v1.0.0 h1:99Vwk+XECZTDLaAPeMj7vF9JMNcVarWddqPeyDzJT5E=
 github.com/atrox/homedir v1.0.0/go.mod h1:ZKVEIDNKscX8qV1TyrwLP+ayjv3XQO7wbVmc5EW00A8=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=

@@ -3,7 +3,7 @@ module github.com/DanielRivasMD/Cerberus
 go 1.22.5
 
 require (
-	github.com/DanielRivasMD/horus v0.0.0-20250502141850-b45c9a43dfc6
+	github.com/DanielRivasMD/horus v0.0.0-20250502212123-e10879ef19ed
 	github.com/atrox/homedir v1.0.0
 	github.com/labstack/gommon v0.4.2
 	github.com/spf13/cobra v1.8.0
