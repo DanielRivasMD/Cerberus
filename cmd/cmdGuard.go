@@ -53,7 +53,7 @@ var guardCmd = &cobra.Command{
 		dirPath := ".git"
 
 		// Check directory existence with a placeholder action in case of missing directory.
-		ok, err := horus.CheckDirExist(dirPath, horus.NullAction(), true)
+		ok, err := horus.CheckDirExist(dirPath, horus.NullAction(), verbose)
 		if err != nil {
 			// handle error: maybe log it, stop execution, etc.
 		}
@@ -90,6 +90,7 @@ func inGit() {
 
 	// Generate and print the final report
 	table := generateMD(repoNames, year)
+// println("here")
 	fmt.Println(table)
 }
 
