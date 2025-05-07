@@ -1,0 +1,76 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+package cmd
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import (
+	"fmt"
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// RepoDescribe represents the repository features.
+type RepoDescribe struct {
+	License  string
+	Overview string
+	Remote   string
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func populateRepoDescribe() (RepoDescribe, error) {
+	// initialize RepoDescribe
+	describe := RepoDescribe{}
+
+	// list files
+	files, err := listFiles(repository)
+	if err != nil {
+		return describe, err
+	}
+
+	// declare switches
+	readmeFound := false
+	licenseFound := false
+
+	// iterate on files
+	for _, file := range files {
+		if file == "README.md" {
+			readmeFound = true
+			describe.Overview, err = parseReadme(file)
+			if err != nil {
+				return describe, err
+			}
+			fmt.Println("Extracted Description:\n", describe.Overview)
+		}
+
+		if file == "LICENSE" {
+			licenseFound = true
+			describe.License, err = detectLicense(file)
+			if err != nil {
+				return describe, err
+			}
+			fmt.Println("License is: ", describe.License)
+		}
+	}
+
+	if !readmeFound {
+		fmt.Println("README.md not found in the directory.")
+	}
+	if !licenseFound {
+		fmt.Println("LICENSE not found in the directory.")
+	}
+
+	// define remote
+	remoteURL, err := getRemote()
+	if err != nil {
+		return describe, err
+	}
+	describe.Remote = remoteURL
+
+	fmt.Println(describe.Remote)
+
+	return describe, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
