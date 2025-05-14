@@ -16,8 +16,8 @@ import (
 // generateHeader creates the Markdown table header.
 func generateHeader() string {
 	var builder strings.Builder
-	builder.WriteString("| Repo                     | Commit | Age    | Language   | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
-	builder.WriteString("|--------------------------|--------|--------|------------|--------|---------|------|-----|-----|-----|-----|\n")
+	builder.WriteString("| Repo                      | Commit | Age    | Language        | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
+	builder.WriteString("|---------------------------|--------|--------|-----------------|--------|---------|------|-----|-----|-----|-----|\n")
 	return builder.String()
 }
 
@@ -52,11 +52,11 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 
 	// Notice we now use %s for language since getColoredLanguage returns a padded string.
 	builder.WriteString(fmt.Sprintf(
-		"| %-24s | %-6d | %-6s | %s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
+		"| %-25s | %-6d | %-6s | %-15s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
 		repoName,
 		stats.Commits,
 		stats.Age,
-		getColoredLanguage(stats.Language, 10),
+		getColoredLanguage(stats.Language, 15),
 		stats.Lines,
 		stats.Size,
 		averageCommits,         // Average commits per month.
