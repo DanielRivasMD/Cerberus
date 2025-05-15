@@ -19,6 +19,8 @@ type RepoDescribe struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: use horus to catch errors
+// TODO: find why multiple repos error out
 func populateRepoDescribe() (RepoDescribe, error) {
 	// initialize RepoDescribe
 	describe := RepoDescribe{}
