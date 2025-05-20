@@ -14,12 +14,6 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// generateHeader creates the Markdown table header.
-func generateHeader() string {
-	var builder strings.Builder
-	builder.WriteString("| Repo                      | Commit | Age    | Language        | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
-	builder.WriteString("|---------------------------|--------|--------|-----------------|--------|---------|------|-----|-----|-----|-----|\n")
-	return builder.String()
 // getHeaders extracts the field names of a struct,
 // omitting any fields present in skipFields.
 func getHeaders(v interface{}, skipFields map[string]bool) []string {
@@ -39,7 +33,6 @@ func getHeaders(v interface{}, skipFields map[string]bool) []string {
 	return headers
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
 // getValues returns the string representations of the struct’s field values,
 // formatted with fixed widths taken from the fieldSizes slice,
 // and omits any fields that are in skipFields.
@@ -49,8 +42,6 @@ func getValues(v interface{}, fieldSizes []int, skipFields map[string]bool) []st
 		val = val.Elem()
 	}
 
-// generateBody creates the Markdown table body for the provided repository statistics.
-func generateBody(stats RepoStats, repoName string, year int) string {
 	var values []string
 	col := 0
 	typ := val.Type()
@@ -77,11 +68,6 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 	headers := getHeaders(v, skipFields)
 	var builder strings.Builder
 
-	// Calculate average commits per month.
-	repoAgeMonths := calculateRepoAgeInMonths(stats.Age)
-	averageCommits := 0
-	if repoAgeMonths > 0 {
-		averageCommits = stats.Commits / repoAgeMonths
 	// Header row
 	builder.WriteString("| ")
 	for i, header := range headers {
@@ -97,20 +83,6 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 	}
 	builder.WriteString("\n")
 
-	// Aggregate commits by quarter for the specified year.
-	quarterlyCommits := map[string]int{
-		"Q1": stats.Frequency[fmt.Sprintf("%d-01", year)] +
-			stats.Frequency[fmt.Sprintf("%d-02", year)] +
-			stats.Frequency[fmt.Sprintf("%d-03", year)],
-		"Q2": stats.Frequency[fmt.Sprintf("%d-04", year)] +
-			stats.Frequency[fmt.Sprintf("%d-05", year)] +
-			stats.Frequency[fmt.Sprintf("%d-06", year)],
-		"Q3": stats.Frequency[fmt.Sprintf("%d-07", year)] +
-			stats.Frequency[fmt.Sprintf("%d-08", year)] +
-			stats.Frequency[fmt.Sprintf("%d-09", year)],
-		"Q4": stats.Frequency[fmt.Sprintf("%d-10", year)] +
-			stats.Frequency[fmt.Sprintf("%d-11", year)] +
-			stats.Frequency[fmt.Sprintf("%d-12", year)],
 	// Separator row
 	builder.WriteString("|")
 	for i, header := range headers {
@@ -120,46 +92,16 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 		}
 		builder.WriteString(strings.Repeat("-", width+2) + "|")
 	}
-
-	// Notice we now use %s for language since getColoredLanguage returns a padded string.
-	builder.WriteString(fmt.Sprintf(
-		"| %-25s | %-6d | %-6s | %-15s | %-6d | %-7s | %-4d | %-3d | %-3d | %-3d | %-3d |\n",
-		repoName,
-		stats.Commits,
-		stats.Age,
-		getColoredLanguage(stats.Language, 15),
-		stats.Lines,
-		stats.Size,
-		averageCommits,         // Average commits per month.
-		quarterlyCommits["Q1"], // Q1 commits.
-		quarterlyCommits["Q2"], // Q2 commits.
-		quarterlyCommits["Q3"], // Q3 commits.
-		quarterlyCommits["Q4"], // Q4 commits.
-	))
 	builder.WriteString("\n")
 	return builder.String()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// generateMD creates the Markdown table for multiple repositories.
-func generateMD(repoNames []string, year int) string {
 // generateMarkdownRow creates a Markdown table row for a single struct instance.
 // It accepts a skipFields map so that fields (e.g., "Remote", "Files", "Frequency")
 // can be omitted from the output.
-func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
 	values := getValues(v, fieldSizes, skipFields)
 	var builder strings.Builder
-	builder.WriteString(generateHeader()) // Add the header once.
 
-	// Record original directory.
-	originalDir := recallDir()
-
-	// Iterate over the directories and generate the body for each repo.
-	for _, repoName := range repoNames {
-		// Change directory.
-		if len(repoNames) > 1 {
-			changeDir(repoName)
 	builder.WriteString("| ")
 	for i, value := range values {
 		if i < len(fieldSizes) && fieldSizes[i] > 0 {
@@ -167,18 +109,7 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 		} else {
 			builder.WriteString(value + " | ")
 		}
-
-		// Collect repo data.
-		statsItem, err := populateRepoStats(year)
-		checkErr(err)
-
-		// Format output.
-		builder.WriteString(generateBody(statsItem, repoName, year))
-
-		// Return directory.
-		changeDir(originalDir)
 	}
-
 	builder.WriteString("\n")
 	return builder.String()
 }
