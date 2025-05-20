@@ -62,12 +62,12 @@ var statsCmd = &cobra.Command{
 		if !ok {
 			// Directory doesn't exist even after our neutral action.
 			// Now you can list directories in the parent folder or take other actions.
-			outGit() // '.git' is not found or logged as missing
+			statsOutGit() // '.git' is not found or logged as missing
 			if err != nil {
 				// handle error listing directories
 			}
 		} else {
-			inGit() // '.git' is found
+			statsInGit() // '.git' is found
 		}
 
 	},
@@ -75,8 +75,17 @@ var statsCmd = &cobra.Command{
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// inGit function to be executed if '.git' is found
-func inGit() {
+// statsOutGit function to be executed if '.git' is not found
+func statsOutGit() {
+	repoNames, _ := listDirs(repository)
+
+	// Generate and print the final report
+	table := generateMD(repoNames, year)
+	fmt.Println(table)
+}
+
+// statsInGit function to be executed if '.git' is found
+func statsInGit() {
 
 	// Vectors to hold stats and repo names
 	var repoNames []string
@@ -88,18 +97,6 @@ func inGit() {
 
 	// collect repo
 	repoNames = append(repoNames, repository)
-
-	// Generate and print the final report
-	table := generateMD(repoNames, year)
-// println("here")
-	fmt.Println(table)
-}
-
-// outGit function to be executed if '.git' is not found
-func outGit() {
-	// fmt.Println("'.git' directory not found! Executing outGit...")
-
-	repoNames, _ := listDirs(repository)
 
 	// Generate and print the final report
 	table := generateMD(repoNames, year)
