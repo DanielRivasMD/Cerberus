@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/mattn/go-runewidth"
@@ -77,8 +78,8 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 		} else {
 			cell = strings.Repeat(" ", padLength) + header
 		}
-		// Wrap with ANSI Bold codes.
-		boldCell := "\033[1m" + cell + "\033[0m"
+		// Wrap with Bold codes.
+		boldCell := chalk.Bold.TextStyle(cell)
 		builder.WriteString(boldCell + " | ")
 	}
 	builder.WriteString("\n")
@@ -215,13 +216,27 @@ func generateMD(repoNames []string, year int) string {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // getColoredLanguage pads the input language string to the provided width,
-// then applies color based on its base language (first token).
+// splitting by whitespace so that the second token is right aligned.
+// Color is applied based on the base language (the first token) using chalk.
 func getColoredLanguage(language string, width int) string {
-	// First, pad the entire language string to the required width.
-	padded := fmt.Sprintf("%-"+fmt.Sprintf("%d", width)+"s", language)
-	// Split the language string by spaces to determine the base language.
-	parts := strings.Split(language, " ")
-	baseLanguage := strings.ToLower(parts[0])
+	parts := strings.Fields(language)
+	var padded string
+	if len(parts) < 2 {
+		// Fallback: simply pad the whole string to the required width.
+		padded = fmt.Sprintf("%-"+strconv.Itoa(width)+"s", language)
+	} else {
+		first := parts[0]
+		second := parts[1]
+		firstWidth := runewidth.StringWidth(first)
+		secondWidth := runewidth.StringWidth(second)
+		// Ensure there is at least one space between tokens.
+		fillerWidth := width - (firstWidth + secondWidth)
+		if fillerWidth < 1 {
+			fillerWidth = 1
+		}
+		padded = first + strings.Repeat(" ", fillerWidth) + second
+	}
+	baseLanguage := strings.ToLower(strings.Split(language, " ")[0])
 	switch baseLanguage {
 	case "go":
 		return chalk.Blue.Color(padded)
