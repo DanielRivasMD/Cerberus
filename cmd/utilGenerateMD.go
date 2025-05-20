@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/ttacon/chalk"
@@ -19,12 +20,61 @@ func generateHeader() string {
 	builder.WriteString("| Repo                      | Commit | Age    | Language        | Lines  | Size    | Mean | Q1  | Q2  | Q3  | Q4  |\n")
 	builder.WriteString("|---------------------------|--------|--------|-----------------|--------|---------|------|-----|-----|-----|-----|\n")
 	return builder.String()
+// getHeaders extracts the field names of a struct,
+// omitting any fields present in skipFields.
+func getHeaders(v interface{}, skipFields map[string]bool) []string {
+	t := reflect.TypeOf(v)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	var headers []string
+	for i := 0; i < t.NumField(); i++ {
+		fieldName := t.Field(i).Name
+		if skipFields[fieldName] {
+			continue // skip the field if it's in the skipFields map
+		}
+		headers = append(headers, fieldName)
+	}
+	return headers
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// getValues returns the string representations of the struct’s field values,
+// formatted with fixed widths taken from the fieldSizes slice,
+// and omits any fields that are in skipFields.
+func getValues(v interface{}, fieldSizes []int, skipFields map[string]bool) []string {
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 
 // generateBody creates the Markdown table body for the provided repository statistics.
 func generateBody(stats RepoStats, repoName string, year int) string {
+	var values []string
+	col := 0
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		fieldName := typ.Field(i).Name
+		if skipFields[fieldName] {
+			continue // skip the field if it's in the skipFields map
+		}
+		width := 0
+		if col < len(fieldSizes) {
+			width = fieldSizes[col]
+		}
+		formatted := fmt.Sprintf("%-*v", width, val.Field(i).Interface())
+		values = append(values, formatted)
+		col++
+	}
+	return values
+}
+
+// generateMarkdownHeader creates a Markdown header row including a separator.
+// It uses the provided fieldSizes slice to pad each header and accepts
+// a skipFields map so that specified fields are not printed.
+func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
+	headers := getHeaders(v, skipFields)
 	var builder strings.Builder
 
 	// Calculate average commits per month.
@@ -32,7 +82,20 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 	averageCommits := 0
 	if repoAgeMonths > 0 {
 		averageCommits = stats.Commits / repoAgeMonths
+	// Header row
+	builder.WriteString("| ")
+	for i, header := range headers {
+		width := 0
+		if i < len(fieldSizes) {
+			width = fieldSizes[i]
+		}
+		if width > 0 {
+			builder.WriteString(fmt.Sprintf("%-*s | ", width, header))
+		} else {
+			builder.WriteString(header + " | ")
+		}
 	}
+	builder.WriteString("\n")
 
 	// Aggregate commits by quarter for the specified year.
 	quarterlyCommits := map[string]int{
@@ -48,6 +111,14 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 		"Q4": stats.Frequency[fmt.Sprintf("%d-10", year)] +
 			stats.Frequency[fmt.Sprintf("%d-11", year)] +
 			stats.Frequency[fmt.Sprintf("%d-12", year)],
+	// Separator row
+	builder.WriteString("|")
+	for i, header := range headers {
+		width := fieldSizes[i]
+		if width <= 0 {
+			width = len(header)
+		}
+		builder.WriteString(strings.Repeat("-", width+2) + "|")
 	}
 
 	// Notice we now use %s for language since getColoredLanguage returns a padded string.
@@ -65,6 +136,7 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 		quarterlyCommits["Q3"], // Q3 commits.
 		quarterlyCommits["Q4"], // Q4 commits.
 	))
+	builder.WriteString("\n")
 	return builder.String()
 }
 
@@ -72,6 +144,11 @@ func generateBody(stats RepoStats, repoName string, year int) string {
 
 // generateMD creates the Markdown table for multiple repositories.
 func generateMD(repoNames []string, year int) string {
+// generateMarkdownRow creates a Markdown table row for a single struct instance.
+// It accepts a skipFields map so that fields (e.g., "Remote", "Files", "Frequency")
+// can be omitted from the output.
+func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
+	values := getValues(v, fieldSizes, skipFields)
 	var builder strings.Builder
 	builder.WriteString(generateHeader()) // Add the header once.
 
@@ -83,6 +160,12 @@ func generateMD(repoNames []string, year int) string {
 		// Change directory.
 		if len(repoNames) > 1 {
 			changeDir(repoName)
+	builder.WriteString("| ")
+	for i, value := range values {
+		if i < len(fieldSizes) && fieldSizes[i] > 0 {
+			builder.WriteString(fmt.Sprintf("%-*s | ", fieldSizes[i], value))
+		} else {
+			builder.WriteString(value + " | ")
 		}
 
 		// Collect repo data.
@@ -96,6 +179,7 @@ func generateMD(repoNames []string, year int) string {
 		changeDir(originalDir)
 	}
 
+	builder.WriteString("\n")
 	return builder.String()
 }
 
