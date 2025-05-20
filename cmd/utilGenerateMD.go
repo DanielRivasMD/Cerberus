@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mattn/go-runewidth"
 	"github.com/ttacon/chalk"
 )
 
@@ -21,51 +22,41 @@ func getHeaders(v interface{}, skipFields map[string]bool) []string {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
-
 	var headers []string
 	for i := 0; i < t.NumField(); i++ {
 		fieldName := t.Field(i).Name
 		if skipFields[fieldName] {
-			continue // skip the field if it's in the skipFields map
+			continue
 		}
 		headers = append(headers, fieldName)
 	}
 	return headers
 }
 
-// getValues returns the string representations of the struct’s field values,
-// formatted with fixed widths taken from the fieldSizes slice,
-// and omits any fields that are in skipFields.
-func getValues(v interface{}, fieldSizes []int, skipFields map[string]bool) []string {
+// getValues returns raw string representations of field values from a struct, skipping fields in skipFields.
+// No padding or alignment is applied here.
+func getValues(v interface{}, skipFields map[string]bool) []string {
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-
 	var values []string
-	col := 0
 	typ := val.Type()
 	for i := 0; i < val.NumField(); i++ {
 		fieldName := typ.Field(i).Name
 		if skipFields[fieldName] {
-			continue // skip the field if it's in the skipFields map
+			continue
 		}
-		width := 0
-		if col < len(fieldSizes) {
-			width = fieldSizes[col]
-		}
-		formatted := fmt.Sprintf("%-*v", width, val.Field(i).Interface())
+		// Return the raw value as string.
+		formatted := fmt.Sprintf("%v", val.Field(i).Interface())
 		values = append(values, formatted)
-		col++
 	}
 	return values
 }
 
-// generateMarkdownHeader creates a Markdown header row including a separator.
-// It uses the provided fieldSizes slice to pad each header and accepts
-// a skipFields map so that specified fields are not printed.
-// Instead of using chalk (which introduces hidden ANSI codes that confuse width calculations),
-// we wrap the padded header value in Markdown bold markers.
+// generateMarkdownHeader creates the Markdown header row (with bold text)
+// and a separator row. It uses runewidth to calculate visible widths.
+// For terminal rendering, ANSI Bold is applied directly.
 func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
 	headers := getHeaders(v, skipFields)
 	var builder strings.Builder
@@ -73,50 +64,47 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 	// Header row
 	builder.WriteString("| ")
 	for i, header := range headers {
-		width := 0
-		if i < len(fieldSizes) {
-			width = fieldSizes[i]
+		// Compute needed padding using visible width.
+		visibleWidth := runewidth.StringWidth(header)
+		padLength := fieldSizes[i] - visibleWidth
+		if padLength < 0 {
+			padLength = 0
 		}
-		// First pad the header with raw text.
-		paddedHeader := fmt.Sprintf("%-*s", width, header)
-		// Then wrap it in markdown bold markers.
-		boldHeader := chalk.Bold.TextStyle(paddedHeader)
-		builder.WriteString(boldHeader + " | ")
+		var cell string
+		// Left-align first column ("Repo"), right-align others.
+		if i == 0 {
+			cell = header + strings.Repeat(" ", padLength)
+		} else {
+			cell = strings.Repeat(" ", padLength) + header
+		}
+		// Wrap with ANSI Bold codes.
+		boldCell := "\033[1m" + cell + "\033[0m"
+		builder.WriteString(boldCell + " | ")
 	}
 	builder.WriteString("\n")
 
-	// Separator row (use the original unformatted header lengths)
+	// Separator row (simple dashes)
 	builder.WriteString("|")
-	for i, header := range headers {
-		width := fieldSizes[i]
-		if width <= 0 {
-			width = len(header)
-		}
-		// We account for the extra padding spaces.
-		builder.WriteString(strings.Repeat("-", width+2) + "|")
+	for i := range headers {
+		builder.WriteString(strings.Repeat("-", fieldSizes[i]+2) + "|")
 	}
 	builder.WriteString("\n")
 	return builder.String()
 }
 
 // generateMarkdownRow creates a Markdown table row for a single struct instance.
-// It accepts a skipFields map so that fields (e.g., "Remote", "Files", "Frequency")
-// can be omitted from the output.
-// Additionally, if the provided instance is of type *RepoStats, it calculates and
-// populates the computed fields (Mean, Q1, Q2, Q3, Q4) for the specified year.
-// Finally, for the "Language" column only, it uses getColoredLanguage to generate
-// a colored & padded string.
+// It updates computed fields (Mean, Q1–Q4) when v is a *RepoStats and applies alignment:
+// the first column ("Repo") is left aligned, while all others are right aligned.
+// Also, for the "Language" column, getColoredLanguage is applied.
 func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool, year int) string {
-	// If v is a pointer to RepoStats, update its computed fields.
+	// If v is a *RepoStats, update computed fields.
 	if repoStats, ok := v.(*RepoStats); ok {
-		// Calculate average commits per month.
 		repoAgeMonths := calculateRepoAgeInMonths(repoStats.Age)
 		averageCommits := 0
 		if repoAgeMonths > 0 {
 			averageCommits = repoStats.Commit / repoAgeMonths
 		}
 
-		// Aggregate commits by quarter for the specified year.
 		quarterlyCommits := map[string]int{
 			"Q1": repoStats.Frequency[fmt.Sprintf("%d-01", year)] +
 				repoStats.Frequency[fmt.Sprintf("%d-02", year)] +
@@ -132,7 +120,6 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 				repoStats.Frequency[fmt.Sprintf("%d-12", year)],
 		}
 
-		// Update the computed fields.
 		repoStats.Mean = averageCommits
 		repoStats.Q1 = quarterlyCommits["Q1"]
 		repoStats.Q2 = quarterlyCommits["Q2"]
@@ -140,79 +127,78 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 		repoStats.Q4 = quarterlyCommits["Q4"]
 	}
 
-	// Retrieve headers and values from the instance, omitting the skipped fields.
+	// Get headers and raw values.
 	headers := getHeaders(v, skipFields)
-	values := getValues(v, fieldSizes, skipFields)
+	values := getValues(v, skipFields)
 	var builder strings.Builder
 
 	builder.WriteString("| ")
 	for i, value := range values {
-		// For the "Language" column, update the value using getColoredLanguage.
+		// For the "Language" column, apply color.
 		if i < len(headers) && headers[i] == "Language" {
 			value = getColoredLanguage(value, fieldSizes[i])
 		}
-		// Format the cell according to the given width.
-		builder.WriteString(fmt.Sprintf("%-*s | ", fieldSizes[i], value))
+		// Compute visible width and calculate the necessary padding.
+		visibleWidth := runewidth.StringWidth(value)
+		padLength := fieldSizes[i] - visibleWidth
+		if padLength < 0 {
+			padLength = 0
+		}
+		var cell string
+		// Left align only the first column ("Repo"); right align others.
+		if i == 0 {
+			cell = value + strings.Repeat(" ", padLength)
+		} else {
+			cell = strings.Repeat(" ", padLength) + value
+		}
+		builder.WriteString(cell + " | ")
 	}
 	builder.WriteString("\n")
 	return builder.String()
 }
 
 // generateMD creates the Markdown table for one or more repositories.
-// It uses our latest header & row generators that include computed fields
-// and special handling for the Language column via getColoredLanguage.
+// It uses our header and row generators (which update computed fields and right align all but the first column).
 func generateMD(repoNames []string, year int) string {
 	var builder strings.Builder
 
 	// Create a sample instance of RepoStats for header generation.
-	// (Only its fields are used, not its values.)
 	var statsSample RepoStats
 
-	// Define the skip fields map: these fields will be omitted from the final table.
+	// Define fields to skip.
 	skip := map[string]bool{
 		"Remote":    true,
 		"Files":     true,
 		"Frequency": true,
 	}
 
-	// Define field sizes for the displayed (remaining) fields.
-	// In our RepoStats, after skipping, the order is assumed to be:
+	// Field sizes (in characters) for the displayed fields, in order:
 	// Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
-	// Here we use:
-	// - 25 for Repo,
-	// - 6 for Language,
-	// - 6 for Age,
-	// - 15 for Commit,
-	// - 6 for Lines,
-	// - 7 for Size,
-	// - 4 for Mean, and
-	// - 3 for each quarter.
 	fieldSizes := []int{25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3}
 
-	// Generate the header row (with bold headers) and the separator line.
+	// Generate the header row.
 	builder.WriteString(generateMarkdownHeader(statsSample, fieldSizes, skip))
 
-	// Record the original directory.
+	// Record original directory (stub).
 	originalDir := recallDir()
 
-	// Iterate over all the repository names.
+	// Process each repository.
 	for _, repoName := range repoNames {
-		// If processing multiple repositories,
-		// change directory to the current repository.
+		// Change directory if handling multiple repositories.
 		if len(repoNames) > 1 {
 			changeDir(repoName)
 		}
 
-		// Collect repository statistics (populates computed fields via populateRepoStats).
+		// Collect repository stats.
 		stats, err := populateRepoStats(year)
-		checkErr(err)
+		if err != nil {
+			panic(err)
+		}
 
-		// Assign repo name (new field "Repo") to include the repository column.
+		// Assign repo name.
 		stats.Repo = repoName
 
-		// Generate and append a Markdown row for the repository.
-		// The row generator will update computed fields and, for the "Language" column,
-		// it will call getColoredLanguage.
+		// Append a Markdown row for this repo.
 		builder.WriteString(generateMarkdownRow(&stats, fieldSizes, skip, year))
 
 		// Return to the original directory.
