@@ -37,9 +37,9 @@ var (
 
 // statsCmd
 var statsCmd = &cobra.Command{
-	Use:   "stats",
+	Use:     "stats",
 	Aliases: []string{"s"},
-	Short: "Collect repository stats",
+	Short:   "Collect repository stats",
 	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
 `,
 
@@ -101,6 +101,43 @@ func statsInGit() {
 	// Generate and print the final report
 	table := generateMD(repoNames, year)
 	fmt.Println(table)
+
+	// Define the fields to skip.
+	skip := map[string]bool{
+		"Remote":    true,
+		"Files":     true,
+		"Frequency": true,
+	}
+
+	// // Simulate collected repository stats.
+	// stats := RepoStats{
+	// 	Repo:      "Test",
+	// 	Language:  "Go 80%",
+	// 	Age:       "3y2m",
+	// 	Commit:    150,
+	// 	Remote:    "github.com/user/repo",
+	// 	Lines:     10234,
+	// 	Files:     150,
+	// 	Size:      "5MB",
+	// 	Frequency: map[string]int{"2025-01": 12, "2025-02": 15},
+	// 	Mean:      6,
+	// 	Q1:        40,
+	// 	Q2:        35,
+	// 	Q3:        50,
+	// 	Q4:        25,
+	// }
+
+	stats, _ := populateRepoStats(year)
+
+	// Define field sizes for the output.
+	// The order is assumed to match the non-skipped fields in the struct.
+	fieldSizes := []int{25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3} // Adjust according to your needs
+
+	mdHeader := generateMarkdownHeader(stats, fieldSizes, skip)
+	mdRow := generateMarkdownRow(stats, fieldSizes, skip)
+
+	mdTable := mdHeader + mdRow
+	fmt.Println(mdTable)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
