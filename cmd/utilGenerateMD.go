@@ -158,6 +158,70 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 	return builder.String()
 }
 
+// generateMD creates the Markdown table for one or more repositories.
+// It uses our latest header & row generators that include computed fields
+// and special handling for the Language column via getColoredLanguage.
+func generateMD(repoNames []string, year int) string {
+	var builder strings.Builder
+
+	// Create a sample instance of RepoStats for header generation.
+	// (Only its fields are used, not its values.)
+	var statsSample RepoStats
+
+	// Define the skip fields map: these fields will be omitted from the final table.
+	skip := map[string]bool{
+		"Remote":    true,
+		"Files":     true,
+		"Frequency": true,
+	}
+
+	// Define field sizes for the displayed (remaining) fields.
+	// In our RepoStats, after skipping, the order is assumed to be:
+	// Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
+	// Here we use:
+	// - 25 for Repo,
+	// - 6 for Language,
+	// - 6 for Age,
+	// - 15 for Commit,
+	// - 6 for Lines,
+	// - 7 for Size,
+	// - 4 for Mean, and
+	// - 3 for each quarter.
+	fieldSizes := []int{25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3}
+
+	// Generate the header row (with bold headers) and the separator line.
+	builder.WriteString(generateMarkdownHeader(statsSample, fieldSizes, skip))
+
+	// Record the original directory.
+	originalDir := recallDir()
+
+	// Iterate over all the repository names.
+	for _, repoName := range repoNames {
+		// If processing multiple repositories,
+		// change directory to the current repository.
+		if len(repoNames) > 1 {
+			changeDir(repoName)
+		}
+
+		// Collect repository statistics (populates computed fields via populateRepoStats).
+		stats, err := populateRepoStats(year)
+		checkErr(err)
+
+		// Assign repo name (new field "Repo") to include the repository column.
+		stats.Repo = repoName
+
+		// Generate and append a Markdown row for the repository.
+		// The row generator will update computed fields and, for the "Language" column,
+		// it will call getColoredLanguage.
+		builder.WriteString(generateMarkdownRow(&stats, fieldSizes, skip, year))
+
+		// Return to the original directory.
+		changeDir(originalDir)
+	}
+
+	return builder.String()
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // getColoredLanguage pads the input language string to the provided width,
