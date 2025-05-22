@@ -174,6 +174,56 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 	return builder.String()
 }
 
+// generateDescribeMD creates the Markdown table for repositories described via RepoDescribe.
+func generateDescribeMD(repoNames []string) string {
+	var builder strings.Builder
+
+	// Define the field sizes (in characters) for each column in order: Repo, Remote, Overview, License.
+	fieldSizes := []int{20, 40, 50, 20}
+
+	// Our generic functions use a skipFields map.
+	// For this struct, no field is skipped.
+	skip := map[string]bool{}
+
+	// Create a sample RepoDescribe instance solely for header generation.
+	sample := RepoDescribe{
+		Repo:     "SampleRepo",
+		Remote:   "https://example.com/sample.git",
+		Overview: "This is a sample overview.",
+		License:  "MIT",
+	}
+	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip))
+
+	// Record the original directory.
+	originalDir := recallDir()
+
+	// Iterate over each repository name.
+	for _, repoName := range repoNames {
+		// Change directory if processing multiple repositories.
+		if len(repoNames) > 1 {
+			changeDir(repoName)
+		}
+
+		// Populate repository description.
+		describe, err := populateRepoDescribe()
+		if err != nil {
+			panic(err)
+		}
+
+		// Set the Repo field from the external repository name.
+		describe.Repo = repoName
+
+		// Append a row for this repository.
+		// The extra 'year' parameter is passed as 0 since it's not used here.
+		builder.WriteString(generateMarkdownRow(describe, fieldSizes, skip, 0))
+
+		// Return to the original directory.
+		changeDir(originalDir)
+	}
+
+	return builder.String()
+}
+
 // generateStatsMD creates the Markdown table for one or more repositories.
 // It uses our header and row generators (which update computed fields and right align all but the first column).
 func generateStatsMD(repoNames []string, year int) string {
