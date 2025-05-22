@@ -81,7 +81,7 @@ func statsOutGit() {
 	repoNames, _ := listDirs(repository)
 
 	// Generate and print the final report
-	table := generateMD(repoNames, year)
+	table := generateStatsMD(repoNames, year)
 	fmt.Println(table)
 }
 
@@ -98,7 +98,7 @@ func statsInGit() {
 	// collect repo
 	repoNames = append(repoNames, repository)
 
-	table := generateMD(repoNames, year)
+	table := generateStatsMD(repoNames, year)
 	fmt.Println(table)
 }
 

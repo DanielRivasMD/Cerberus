@@ -174,9 +174,9 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 	return builder.String()
 }
 
-// generateMD creates the Markdown table for one or more repositories.
+// generateStatsMD creates the Markdown table for one or more repositories.
 // It uses our header and row generators (which update computed fields and right align all but the first column).
-func generateMD(repoNames []string, year int) string {
+func generateStatsMD(repoNames []string, year int) string {
 	var builder strings.Builder
 
 	// Create a sample instance of RepoStats for header generation.
