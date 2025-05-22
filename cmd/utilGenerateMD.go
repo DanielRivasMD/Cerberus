@@ -222,25 +222,24 @@ func generateMD(repoNames []string, year int) string {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// getColoredLanguage pads the input language string to the provided width,
 // getColoredAge pads the input age string to the provided width,
 // splitting it into two parts (e.g., "1y" and "3m" from "1y 3m") so that
 // the year part is left aligned and the month part is right aligned, then
-// applies chalk color (here using chalk.Green) to the final padded string.
+// applies chalk color: bold if the record does not contain "0y", otherwise dim.
 func getColoredAge(age string, width int) string {
 	// Split the age string on whitespace.
 	parts := strings.Fields(age)
 	var padded string
 	if len(parts) < 2 {
-		// If there's not two parts, simply pad the whole string to the required width.
+		// If there are fewer than two parts, simply pad the entire string to the width.
 		padded = fmt.Sprintf("%-"+strconv.Itoa(width)+"s", age)
 	} else {
 		yearPart := parts[0]
 		monthPart := parts[1]
-		// Calculate the visible widths (ignoring any ANSI sequences or multi-width runes).
+		// Calculate the visible widths.
 		yearWidth := runewidth.StringWidth(yearPart)
 		monthWidth := runewidth.StringWidth(monthPart)
-		// We need at least one space between the two tokens.
+		// Calculate filler spaces ensuring at least one space between tokens.
 		fillerWidth := width - (yearWidth + monthWidth)
 		if fillerWidth < 1 {
 			fillerWidth = 1
@@ -248,7 +247,10 @@ func getColoredAge(age string, width int) string {
 		// Construct the padded age string.
 		padded = yearPart + strings.Repeat(" ", fillerWidth) + monthPart
 	}
-	// Optionally, you can color the final text. Here we color it with chalk.Green.
+	// If the age record does not contain "0y", render in bold; otherwise, use dim.
+	if !strings.Contains(age, "0y") {
+		return chalk.Bold.TextStyle(padded)
+	}
 	return chalk.Dim.TextStyle(padded)
 }
 
