@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DanielRivasMD/horus"
 	"github.com/mattn/go-runewidth"
 	"github.com/ttacon/chalk"
 )
@@ -174,8 +175,29 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 	return builder.String()
 }
 
+// --------------------------------------------------------------------------------
+// Generic Table Generator Using Go Generics (Go 1.18+)
+// --------------------------------------------------------------------------------
+
+// generateGenericMD is a generic function that builds a Markdown table for any type T.
+// - sample: a pointer to a sample instance (used for header generation)
+// - repoNames: slice of repository names to process
+// - populateFunc: a function that, given a repo name, returns a pointer to a populated instance of T
+// - fieldSizes: a slice of column widths (in characters)
+// - skip: a map of field names to skip
+// - extra: an extra parameter (for example, the year for stats formatting)
+func generateGenericMD[T any](
+	sample *T,
+	repoNames []string,
+	populateFunc func(repoName string) (*T, error),
+	fieldSizes []int,
+	skip map[string]bool,
+	extra int,
+) string {
 	var builder strings.Builder
 
+	// Generate header row.
+	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip))
 
 	originalDir := recallDir()
 
@@ -185,15 +207,20 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 			changeDir(repoName)
 		}
 
+		instance, err := populateFunc(repoName)
 		if err != nil {
+			// Wrap the error using Horus and then panic.
+			panic(horus.NewHerror("generateGenericMD", "populateFunc failed for repository", err, map[string]any{"repoName": repoName}))
 		}
 
+		builder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra))
 		changeDir(originalDir)
 	}
 
 	return builder.String()
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 // getColoredAge pads the input age string to the provided width,
 // splitting it into two parts (e.g., "1y" and "3m" from "1y 3m") so that
