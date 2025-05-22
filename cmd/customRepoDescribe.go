@@ -14,9 +14,10 @@ import (
 
 // RepoDescribe represents the repository features.
 type RepoDescribe struct {
-	License  string
-	Overview string
+	Repo     string
 	Remote   string
+	Overview string
+	License  string
 }
 
 // TODO: replace manual header generator
