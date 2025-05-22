@@ -83,3 +83,27 @@ func populateRepoDescribe() (RepoDescribe, error) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// generateDescribeMD generates the Markdown table for the describe command.
+func generateDescribeMD(repoNames []string) string {
+	// Define column widths for: Repo, Remote, Overview, License.
+	fieldSizes := []int{20, 40, 50, 20}
+	skip := map[string]bool{} // no fields skipped
+
+	var sample RepoDescribe // used solely for header generation
+
+	// populateFunc for describe command.
+	populateFunc := func(repoName string) (*RepoDescribe, error) {
+		d, err := populateRepoDescribe()
+		if err != nil {
+			return nil, err
+		}
+		d.Repo = repoName
+		return &d, nil
+	}
+
+	// Extra parameter is not used for describe (pass 0).
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
