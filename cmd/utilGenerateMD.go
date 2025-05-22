@@ -150,6 +150,11 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 			value = getColoredSize(value, fieldSizes[i])
 		}
 
+		// For other columns, dim if zero.
+		if i > 0 {
+			value = getDimIfZero(value, fieldSizes[i])
+		}
+
 		// Compute visible width and calculate the necessary padding.
 		visibleWidth := runewidth.StringWidth(value)
 		padLength := fieldSizes[i] - visibleWidth
@@ -323,6 +328,16 @@ func getColoredSize(age string, width int) string {
 		return chalk.Bold.TextStyle(padded)
 	}
 	return chalk.Dim.TextStyle(padded)
+}
+
+func getDimIfZero(value string, width int) string {
+	// Right-align the value within the given width.
+	padded := fmt.Sprintf("%*s", width, value)
+	if value == "0" {
+		// If the value is "0", return the padded string in a dim style.
+		return chalk.Dim.TextStyle(padded)
+	}
+	return padded
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
