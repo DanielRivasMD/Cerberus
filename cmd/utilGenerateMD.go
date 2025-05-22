@@ -174,104 +174,26 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 	return builder.String()
 }
 
-// generateDescribeMD creates the Markdown table for repositories described via RepoDescribe.
-func generateDescribeMD(repoNames []string) string {
 	var builder strings.Builder
 
-	// Create a sample instance of RepoDescribe for header generation.
-	var describeSample RepoDescribe
 
-	// Our generic functions use a skipFields map.
-	// For this struct, no field is skipped.
-	skip := map[string]bool{}
-
-	// Define the field sizes (in characters) for each column in order: Repo, Remote, Overview, License.
-	fieldSizes := []int{20, 40, 50, 20}
-
-	builder.WriteString(generateMarkdownHeader(describeSample, fieldSizes, skip))
-
-	// Record the original directory.
 	originalDir := recallDir()
 
-	// Iterate over each repository name.
 	for _, repoName := range repoNames {
 		// Change directory if processing multiple repositories.
 		if len(repoNames) > 1 {
 			changeDir(repoName)
 		}
 
-		// Populate repository description.
-		describe, err := populateRepoDescribe()
 		if err != nil {
-			panic(err)
 		}
 
-		// Set the Repo field from the external repository name.
-		describe.Repo = repoName
-
-		// Append a row for this repository.
-		// The extra 'year' parameter is passed as 0 since it's not used here.
-		builder.WriteString(generateMarkdownRow(&describe, fieldSizes, skip, 0))
-
-		// Return to the original directory.
 		changeDir(originalDir)
 	}
 
 	return builder.String()
 }
 
-// generateStatsMD creates the Markdown table for one or more repositories.
-// It uses our header and row generators (which update computed fields and right align all but the first column).
-func generateStatsMD(repoNames []string, year int) string {
-	var builder strings.Builder
-
-	// Create a sample instance of RepoStats for header generation.
-	var statsSample RepoStats
-
-	// Define fields to skip.
-	skip := map[string]bool{
-		"Remote":    true,
-		"Files":     true,
-		"Frequency": true,
-	}
-
-	// Field sizes (in characters) for the displayed fields, in order:
-	// Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
-	fieldSizes := []int{25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3}
-
-	// Generate the header row.
-	builder.WriteString(generateMarkdownHeader(statsSample, fieldSizes, skip))
-
-	// Record original directory (stub).
-	originalDir := recallDir()
-
-	// Process each repository.
-	for _, repoName := range repoNames {
-		// Change directory if handling multiple repositories.
-		if len(repoNames) > 1 {
-			changeDir(repoName)
-		}
-
-		// Collect repository stats.
-		stats, err := populateRepoStats(year)
-		if err != nil {
-			panic(err)
-		}
-
-		// Assign repo name.
-		stats.Repo = repoName
-
-		// Append a Markdown row for this repo.
-		builder.WriteString(generateMarkdownRow(&stats, fieldSizes, skip, year))
-
-		// Return to the original directory.
-		changeDir(originalDir)
-	}
-
-	return builder.String()
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // getColoredAge pads the input age string to the provided width,
 // splitting it into two parts (e.g., "1y" and "3m" from "1y 3m") so that
