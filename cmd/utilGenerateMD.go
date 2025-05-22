@@ -144,7 +144,12 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 		if i < len(headers) && headers[i] == "Language" {
 			value = getColoredLanguage(value, fieldSizes[i])
 		}
+
+		// For the "Size" column, apply color.
+		if i < len(headers) && headers[i] == "Size" {
+			value = getColoredSize(value, fieldSizes[i])
 		}
+
 		// Compute visible width and calculate the necessary padding.
 		visibleWidth := runewidth.StringWidth(value)
 		padLength := fieldSizes[i] - visibleWidth
@@ -284,6 +289,38 @@ func getColoredLanguage(language string, width int) string {
 	default:
 		return padded // Return uncolored if no match.
 	}
+}
+
+// getColoredSize pads the input age string to the provided width,
+// splitting it into two parts (e.g., "1y" and "3m" from "1y 3m") so that
+// the year part is left aligned and the month part is right aligned, then
+// applies chalk color: bold if the record contains "MB", otherwise dim.
+func getColoredSize(age string, width int) string {
+	// Split the age string on whitespace.
+	parts := strings.Fields(age)
+	var padded string
+	if len(parts) < 2 {
+		// If there are fewer than two parts, simply pad the entire string to the width.
+		padded = fmt.Sprintf("%-"+strconv.Itoa(width)+"s", age)
+	} else {
+		yearPart := parts[0]
+		monthPart := parts[1]
+		// Calculate visible widths.
+		yearWidth := runewidth.StringWidth(yearPart)
+		monthWidth := runewidth.StringWidth(monthPart)
+		// Calculate filler spaces ensuring at least one space between tokens.
+		fillerWidth := width - (yearWidth + monthWidth)
+		if fillerWidth < 1 {
+			fillerWidth = 1
+		}
+		// Construct the padded age string.
+		padded = yearPart + strings.Repeat(" ", fillerWidth) + monthPart
+	}
+	// If the original age string contains "MB", render in bold; otherwise, use dim.
+	if strings.Contains(age, "MB") {
+		return chalk.Bold.TextStyle(padded)
+	}
+	return chalk.Dim.TextStyle(padded)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
