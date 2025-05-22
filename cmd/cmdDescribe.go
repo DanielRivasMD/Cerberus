@@ -86,58 +86,20 @@ func describeOutGit() {
 // describeInGit function to be executed if '.git' is found
 func describeInGit() {
 
-	// // Vectors to hold stats and repo names
-	// var repoNames []string
+	// Vectors to hold stats and repo names
+	var repoNames []string
 
-	// // Change repo name report if the repo is "."
-	// if repository == "." {
-	// 	repository = currentDir()
-	// }
-
-	describe, err := populateRepoDescribe()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(describe)
-
-	// Generate the Markdown header using RepoDescribe.
-	headerempty := generateHeader(RepoDescribe{})
-	fmt.Print(headerempty)
-
-	// Generate the Markdown header using RepoDescribe.
-	header := generateHeader(describe)
-	fmt.Print(header)
-
-	repos := []RepoDescribe{
-		describe,
+	// Change repo name report if the repo is "."
+	if repository == "." {
+		repository = currentDir()
 	}
 
-	generateMDDescribe(repos)
+	// collect repo
+	repoNames = append(repoNames, repository)
 
-	fmt.Println(repos)
+	table := generateDescribeMD(repoNames)
+	fmt.Println(table)
 
-	// // Sample data for repositories.
-	// describes := []RepoDescribe{
-	// 	{"MIT", "A permissive license", "github.com/user/repo1"},
-	// 	{"Apache-2.0", "Enterprise-friendly", "github.com/user/repo2"},
-	// }
-
-	// stats := []RepoStats{
-	// 	{150, "2 years", "Go", 10000, "2MB", 6, 40, 35, 50, 25},
-	// 	{200, "3 years", "Python", 15000, "3MB", 7, 60, 45, 55, 40},
-	// }
-
-	// // Generate and output the Markdown table.
-	// table := generateMarkdownTable(describes, stats)
-	// fmt.Print(table)
-
-	// // collect repo
-	// repoNames = append(repoNames, repository)
-
-	// // Generate and print the final report
-	// table := generateMD(repoNames, year)
-	// // println("here")
-	// fmt.Println(table)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
