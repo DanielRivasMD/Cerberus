@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +28,12 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	describe := RepoDescribe{}
 
 	// list files
+	pwd, err := os.Getwd()
+	if err != nil {
+		return describe, err
+	}
+
+	files, err := listFiles(pwd)
 	if err != nil {
 		return describe, err
 	}
