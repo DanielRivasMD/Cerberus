@@ -84,3 +84,31 @@ func populateRepoStats(year int) (RepoStats, error) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// generateStatsMD generates the Markdown table for the stats command.
+func generateStatsMD(repoNames []string, year int) string {
+	// Define field sizes for: Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
+	fieldSizes := []int{25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3}
+	skip := map[string]bool{
+		"Remote":    true,
+		"Files":     true,
+		"Frequency": true,
+	}
+
+	var sample RepoStats // sample instance for header generation
+
+	// populateFunc for stats command.
+	populateFunc := func(repoName string) (*RepoStats, error) {
+		s, err := populateRepoStats(year)
+		if err != nil {
+			return nil, err
+		}
+		s.Repo = repoName
+		return &s, nil
+	}
+
+	// Pass the year as the extra parameter.
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
