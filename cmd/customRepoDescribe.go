@@ -40,7 +40,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	// iterate on files
 	for _, file := range files {
 		if file == "README.md" {
-			describe.Overview, err = parseReadme(file)
+			describe.Overview, err = parseReadme(file, 99)
 			if err != nil {
 				return describe, err
 			}
