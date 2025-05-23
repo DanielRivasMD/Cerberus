@@ -152,6 +152,10 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 			value = getColoredSize(value, fieldSizes[i])
 		}
 
+		if i < len(headers) && headers[i] == "Remote" {
+			value = TrimGitHubRemote(value)
+		}
+
 		// For other columns, dim if zero.
 		if i > 0 {
 			value = getDimIfZero(value, fieldSizes[i])
@@ -346,6 +350,15 @@ func calculateRepoAgeInMonths(age string) int {
 	years, months := 0, 0
 	fmt.Sscanf(age, "%dy %dm", &years, &months) // Parse "Xy Ym" format.
 	return (years * 12) + months
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TrimGitHubRemote removes the "https://github.com/" prefix from the provided remote string,
+// if it exists. Otherwise, it returns the string unchanged.
+func TrimGitHubRemote(remote string) string {
+	const prefix = "https://github.com/"
+	return strings.TrimPrefix(remote, prefix)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
