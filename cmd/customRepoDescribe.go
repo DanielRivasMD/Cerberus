@@ -59,15 +59,16 @@ func populateRepoDescribe() (RepoDescribe, error) {
 			if err != nil {
 				return describe, err
 			}
-			fmt.Println("License is: ", describe.License)
+			// fmt.Println("License is: ", describe.License)
 		}
 	}
 
 	if !readmeFound {
-		fmt.Println("README.md not found in the directory.")
+		// fmt.Println("README.md not found in the directory.")
 	}
+
 	if !licenseFound {
-		fmt.Println("LICENSE not found in the directory.")
+		// fmt.Println("LICENSE not found in the directory.")
 	}
 
 	// define remote
@@ -77,7 +78,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	}
 	describe.Remote = remoteURL
 
-	fmt.Println(describe.Remote)
+	// fmt.Println(describe.Remote)
 
 	return describe, nil
 }
@@ -87,7 +88,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 // generateDescribeMD generates the Markdown table for the describe command.
 func generateDescribeMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote, Overview, License.
-	fieldSizes := []int{20, 40, 50, 20}
+	fieldSizes := []int{17, 25, 70, 7}
 	skip := map[string]bool{} // no fields skipped
 
 	var sample RepoDescribe // used solely for header generation
