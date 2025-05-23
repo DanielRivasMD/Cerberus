@@ -37,14 +37,9 @@ func populateRepoDescribe() (RepoDescribe, error) {
 		return describe, err
 	}
 
-	// declare switches
-	readmeFound := false
-	licenseFound := false
-
 	// iterate on files
 	for _, file := range files {
 		if file == "README.md" {
-			readmeFound = true
 			describe.Overview, err = parseReadme(file)
 			if err != nil {
 				return describe, err
@@ -52,21 +47,11 @@ func populateRepoDescribe() (RepoDescribe, error) {
 		}
 
 		if file == "LICENSE" {
-			licenseFound = true
 			describe.License, err = detectLicense(file)
 			if err != nil {
 				return describe, err
 			}
-			// fmt.Println("License is: ", describe.License)
 		}
-	}
-
-	if !readmeFound {
-		// fmt.Println("README.md not found in the directory.")
-	}
-
-	if !licenseFound {
-		// fmt.Println("LICENSE not found in the directory.")
 	}
 
 	// define remote
@@ -75,8 +60,6 @@ func populateRepoDescribe() (RepoDescribe, error) {
 		return describe, err
 	}
 	describe.Remote = remoteURL
-
-	// fmt.Println(describe.Remote)
 
 	return describe, nil
 }
