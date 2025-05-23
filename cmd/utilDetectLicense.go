@@ -7,6 +7,8 @@ package cmd
 import (
 	"os"
 	"strings"
+
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +16,7 @@ import (
 // detectLicense identifies license type
 func detectLicense(filename string) (string, error) {
 	data, err := os.ReadFile(filename)
-	checkErr(err)
+	horus.CheckErr(err)
 
 	content := strings.ToLower(string(data))
 
