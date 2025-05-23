@@ -7,6 +7,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+
+	"github.com/DanielRivasMD/domovoi"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,8 +23,6 @@ type RepoDescribe struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: use horus to catch errors
-// TODO: find why multiple repos error out
 func populateRepoDescribe() (RepoDescribe, error) {
 	// initialize RepoDescribe
 	describe := RepoDescribe{}
@@ -33,7 +33,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 		return describe, err
 	}
 
-	files, err := listFiles(pwd)
+	files, err := domovoi.ListFiles(pwd)
 	if err != nil {
 		return describe, err
 	}
