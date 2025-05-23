@@ -1,11 +1,10 @@
 module github.com/DanielRivasMD/Cerberus
 
-go 1.22.5
+go 1.23.4
 
 require (
-	github.com/DanielRivasMD/horus v0.0.0-20250502212123-e10879ef19ed
-	github.com/atrox/homedir v1.0.0
-	github.com/labstack/gommon v0.4.2
+	github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874
+	github.com/DanielRivasMD/horus v0.0.0-20250523045430-566d11f1f1a9
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
@@ -14,9 +13,11 @@ require (
 )
 
 require (
+	github.com/atrox/homedir v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
