@@ -74,14 +74,12 @@ var describeCmd = &cobra.Command{
 
 // describeOutGit function to be executed if '.git' is not found
 func describeOutGit() {
+	// Collect repositories
+	repoNames, _ := domovoi.ListDirs(repository)
 
-	// repoNames, _ := listDirs(repository)
-
-	populateRepoDescribe()
-
-	// // Generate and print the final report
-	// table := generateMD(repoNames, year)
-	// fmt.Println(table)
+	// Generate and print the final report
+	table := generateDescribeMD(repoNames)
+	fmt.Println(table)
 }
 
 // describeInGit function to be executed if '.git' is found
