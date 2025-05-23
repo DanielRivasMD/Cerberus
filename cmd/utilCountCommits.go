@@ -7,14 +7,17 @@ package cmd
 import (
 	"strconv"
 	"strings"
+
+	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // counts total commits
 func countCommits() (int, error) {
-	out, _, ε := captureExecCmd("git", "rev-list", "--count", "HEAD")
-	checkErr(ε)
+	out, _, ε := domovoi.CaptureExecCmd("git", "rev-list", "--count", "HEAD")
+	horus.CheckErr(ε)
 
 	commits, err := strconv.Atoi(strings.TrimSpace(string(out)))
 	return commits, err
