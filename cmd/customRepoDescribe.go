@@ -5,7 +5,6 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/DanielRivasMD/domovoi"
@@ -50,7 +49,6 @@ func populateRepoDescribe() (RepoDescribe, error) {
 			if err != nil {
 				return describe, err
 			}
-			fmt.Println("Extracted Description:\n", describe.Overview)
 		}
 
 		if file == "LICENSE" {
@@ -88,8 +86,10 @@ func populateRepoDescribe() (RepoDescribe, error) {
 // generateDescribeMD generates the Markdown table for the describe command.
 func generateDescribeMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote, Overview, License.
-	fieldSizes := []int{17, 25, 70, 7}
-	skip := map[string]bool{} // no fields skipped
+	fieldSizes := []int{17, 99, 7}
+	skip := map[string]bool{
+		"Remote": true,
+	}
 
 	var sample RepoDescribe // used solely for header generation
 
