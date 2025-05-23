@@ -8,14 +8,17 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func repoAge() (string, error) {
 	// get first commit
-	out, _, ε := captureExecCmd("git", "log", "--reverse", "--format=%ci")
-	checkErr(ε)
+	out, _, ε := domovoi.CaptureExecCmd("git", "log", "--reverse", "--format=%ci")
+	horus.CheckErr(ε)
 
 	// split output into individual lines
 	commitDates := strings.Split(string(out), "\n")
@@ -29,7 +32,7 @@ func repoAge() (string, error) {
 	// parse first commit date
 	layout := "2006-01-02 15:04:05 -0700" // git commit date format
 	firstCommitDate, ε := time.Parse(layout, firstCommitDateStr)
-	checkErr(ε)
+	horus.CheckErr(ε)
 
 	// calculate difference
 	currentDate := time.Now()
