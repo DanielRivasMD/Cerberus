@@ -6,14 +6,17 @@ package cmd
 
 import (
 	"strings"
+
+	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // extracts repository remote URL
 func getRemote() (string, error) {
-	out, _, ε := captureExecCmd("git", "remote", "-v")
-	checkErr(ε)
+	out, _, ε := domovoi.CaptureExecCmd("git", "remote", "-v")
+	horus.CheckErr(ε)
 
 	return parseRemoteURL(string(out)), nil
 }
