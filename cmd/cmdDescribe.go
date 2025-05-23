@@ -17,9 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
@@ -47,62 +44,10 @@ var describeCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// Path to check for the '.git' directory
-		dirPath := ".git"
-
-		// Check directory existence with a placeholder action in case of missing directory.
-		ok, err := domovoi.DirExist(dirPath, horus.NullAction(), verbose)
-		if err != nil {
-			// handle error: maybe log it, stop execution, etc.
-		}
-
-		if !ok {
-			// Directory doesn't exist even after our neutral action.
-			// Now you can list directories in the parent folder or take other actions.
-			describeOutGit() // '.git' is not found or logged as missing
-			if err != nil {
-				// handle error listing directories
-			}
-		} else {
-			describeInGit() // '.git' is found
-		}
+		err := handleGit("describe", verbose)
+		horus.CheckErr(err)
 
 	},
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// describeOutGit function to be executed if '.git' is not found
-func describeOutGit() {
-	// Collect repositories
-	repoNames, _ := domovoi.ListDirs(repository)
-
-	// Generate and print the final report
-	table := generateDescribeMD(repoNames)
-	fmt.Println(table)
-}
-
-// describeInGit function to be executed if '.git' is found
-func describeInGit() {
-
-	// Vectors to hold stats and repo names
-	var repoNames []string
-
-	// Declare error
-	var err error
-
-	// Change repo name report if the repo is "."
-	if repository == "." {
-		repository, err = domovoi.CurrentDir()
-		horus.CheckErr(err)
-	}
-
-	// collect repo
-	repoNames = append(repoNames, repository)
-
-	table := generateDescribeMD(repoNames)
-	fmt.Println(table)
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
