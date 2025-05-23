@@ -8,6 +8,8 @@ import (
 	"bufio"
 	"os"
 	"strings"
+
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,7 +17,7 @@ import (
 // parseReadme extracts the content under "### Description"
 func parseReadme(filename string) (string, error) {
 	file, err := os.Open(filename)
-	checkErr(err)
+	horus.CheckErr(err)
 	defer file.Close()
 
 	var descriptionLines []string
@@ -41,7 +43,7 @@ func parseReadme(filename string) (string, error) {
 		}
 	}
 
-	checkErr(scanner.Err())
+	horus.CheckErr(scanner.Err())
 
 	return strings.Join(descriptionLines, "\n"), nil
 }
