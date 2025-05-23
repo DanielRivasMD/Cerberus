@@ -6,6 +6,8 @@ package cmd
 
 import (
 	"strconv"
+
+	"github.com/DanielRivasMD/domovoi"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +41,7 @@ func populateRepoStats(year int) (RepoStats, error) {
 	stats := RepoStats{}
 
 	// fetch repository metrics
-	tokeiOut, _, ε := captureExecCmd("tokei", "-C")
+	tokeiOut, _, ε := domovoi.CaptureExecCmd("tokei", "-C")
 	if ε != nil {
 		return stats, ε
 	}
