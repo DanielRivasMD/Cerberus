@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,8 +33,8 @@ func commitFrequency(year int) (map[string]int, error) {
 	}
 
 	// get commit dates within specified year
-	out, _, ε := captureExecCmd("git", "log", "--since", fmt.Sprintf("%d-01-01", year), "--until", fmt.Sprintf("%d-12-31", year), "--format=%ci")
-	checkErr(ε)
+	out, _, ε := domovoi.CaptureExecCmd("git", "log", "--since", fmt.Sprintf("%d-01-01", year), "--until", fmt.Sprintf("%d-12-31", year), "--format=%ci")
+	horus.CheckErr(ε)
 
 	// process output & group by month
 	commitDates := strings.Split(string(out), "\n")
