@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
@@ -54,7 +55,7 @@ var statsCmd = &cobra.Command{
 		dirPath := ".git"
 
 		// Check directory existence with a placeholder action in case of missing directory.
-		ok, err := horus.CheckDirExist(dirPath, horus.NullAction(), verbose)
+		ok, err := domovoi.DirExist(dirPath, horus.NullAction(), verbose)
 		if err != nil {
 			// handle error: maybe log it, stop execution, etc.
 		}
@@ -78,7 +79,7 @@ var statsCmd = &cobra.Command{
 // statsOutGit function to be executed if '.git' is not found
 func statsOutGit() {
 	// Collect repositories
-	repoNames, _ := listDirs(repository)
+	repoNames, _ := domovoi.ListDirs(repository)
 
 	// Generate and print the final report
 	table := generateStatsMD(repoNames, year)
@@ -90,9 +91,13 @@ func statsInGit() {
 	// Vectors to hold stats and repo names
 	var repoNames []string
 
+	// Declare error
+	var err error
+
 	// Change repo name report if the repo is "."
 	if repository == "." {
-		repository = currentDir()
+		repository, err = domovoi.CurrentDir()
+		horus.CheckErr(err)
 	}
 
 	// collect repo
