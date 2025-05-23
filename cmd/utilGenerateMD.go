@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/mattn/go-runewidth"
 	"github.com/ttacon/chalk"
@@ -199,12 +200,14 @@ func generateGenericMD[T any](
 	// Generate header row.
 	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip))
 
-	originalDir := recallDir()
+	originalDir, err := domovoi.RecallDir()
+	horus.CheckErr(err)
 
 	for _, repoName := range repoNames {
 		// Change directory if processing multiple repositories.
 		if len(repoNames) > 1 {
-			changeDir(repoName)
+			err := domovoi.ChangeDir(repoName)
+			horus.CheckErr(err)
 		}
 
 		instance, err := populateFunc(repoName)
@@ -214,7 +217,8 @@ func generateGenericMD[T any](
 		}
 
 		builder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra))
-		changeDir(originalDir)
+		err = domovoi.ChangeDir(originalDir)
+		horus.CheckErr(err)
 	}
 
 	return builder.String()
