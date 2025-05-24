@@ -90,7 +90,7 @@ func populateRepoStats(year int) (RepoStats, error) {
 // generateStatsMD generates the Markdown table for the stats command.
 func generateStatsMD(repoNames []string, year int) string {
 	// Define field sizes for: Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
-	fieldSizes := []int{17, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3}
+	fieldSizes := []int{repoLen, commitLen, ageLen, languageLen, linesLen, sizeLen, meanLen, qLen, qLen, qLen, qLen}
 	skip := map[string]bool{
 		"Remote":    true,
 		"Files":     true,
