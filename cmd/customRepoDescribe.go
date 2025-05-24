@@ -40,7 +40,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	// iterate on files
 	for _, file := range files {
 		if file == "README.md" {
-			describe.Overview, err = parseReadme(file, 99)
+			describe.Overview, err = parseReadme(file, overviewLen)
 			if err != nil {
 				return describe, err
 			}
@@ -69,7 +69,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 // generateDescribeMD generates the Markdown table for the describe command.
 func generateDescribeMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote, Overview, License.
-	fieldSizes := []int{17, 99, 7}
+	fieldSizes := []int{repoLen, overviewLen, licenseLen}
 	skip := map[string]bool{
 		"Remote": true,
 	}
