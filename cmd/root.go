@@ -34,6 +34,21 @@ var (
 	verbose bool
 )
 
+const (
+	repoLen     = 20
+
+	commitLen = 6
+	ageLen = 6
+	languageLen = 15
+	linesLen = 6
+	sizeLen = 7
+	meanLen = 4
+	qLen = 3
+
+	overviewLen = 95
+	licenseLen  = 7
+)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // rootCmd
@@ -114,7 +129,7 @@ func bindFlags(κ *cobra.Command, ω *viper.Viper) {
 func init() {
 
 	// persistent flags
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false,  "Verbose")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
