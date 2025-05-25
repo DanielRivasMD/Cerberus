@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -24,19 +27,33 @@ import (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // declarations
-var ()
+var (
+	iden = `In Greek mythology, Cerberus or ` + chalk.Dim.TextStyle("Κέρβερος") + `, often referred to as the hound of Hades, is a multi-headed dog that guards the gates of the underworld to prevent the dead from leaving.
+
+He was the offspring of the monsters Echidna and Typhon, and was usually described as having three heads, a serpent for a tail, and snakes protruding from his body.
+
+Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours`
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // identityCmd
 var identityCmd = &cobra.Command{
 	Use:   "identity",
-	Short: `Reveal ` + chalk.Yellow.Color("identity") + `.`,
-	Long:  `Reveal ` + chalk.Yellow.Color("identity") + `.`,
+	Short: `Reveal identity`,
+	Long:  `Reveal identity`,
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Run: func(κ *cobra.Command, args []string) {
+
+		domovoi.LineBreaks()
+		fmt.Println()
+
+		fmt.Println(iden)
+
+		domovoi.LineBreaks()
+		fmt.Println()
 
 	},
 }
