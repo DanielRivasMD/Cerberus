@@ -28,9 +28,11 @@ import (
 
 // declarations
 var (
-	iden = `In Greek mythology, Cerberus or ` + chalk.Dim.TextStyle("Κέρβερος") + `, often referred to as the hound of Hades, is a multi-headed dog that guards the gates of the underworld to prevent the dead from leaving.
+	iden = `In Greek mythology, ` + chalk.Yellow.Color("Cerberus") + `, ` + chalk.Dim.TextStyle("Κέρβερος") + `, often referred to as the hound of Hades, is a multi-headed dog
+that guards the gates of the underworld to prevent the dead from leaving.
 
-He was the offspring of the monsters Echidna and Typhon, and was usually described as having three heads, a serpent for a tail, and snakes protruding from his body.
+He was the offspring of the monsters Echidna and Typhon, and was usually described as having three heads,
+a serpent for a tail, and snakes protruding from his body.
 
 Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours`
 )
