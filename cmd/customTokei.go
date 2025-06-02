@@ -27,7 +27,7 @@ type Tokei struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func popualteTokei(tokeiOutput string) (Tokei, string, error) {
+func populateTokei(tokeiOutput string) (Tokei, string, error) {
 	lines := strings.Split(tokeiOutput, "\n")
 	var totalFiles, totalLines, totalCode, totalComments, totalBlanks int
 	var dominantFiles, dominantLines, dominantCode, dominantComments, dominantBlanks int
