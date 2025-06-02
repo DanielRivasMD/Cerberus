@@ -18,6 +18,28 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// leftAligned formats the content so that it is padded on the right to meet the required width.
+func leftAligned(content string, width int) string {
+	visible := runewidth.StringWidth(content)
+	pad := width - visible
+	if pad < 0 {
+		pad = 0
+	}
+	return content + strings.Repeat(" ", pad)
+}
+
+// rightAligned formats the content so that it is padded on the left to meet the required width.
+func rightAligned(content string, width int) string {
+	visible := runewidth.StringWidth(content)
+	pad := width - visible
+	if pad < 0 {
+		pad = 0
+	}
+	return strings.Repeat(" ", pad) + content
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // getHeaders extracts the field names of a struct,
 // omitting any fields present in skipFields.
 func getHeaders(v interface{}, skipFields map[string]bool) []string {
@@ -57,28 +79,22 @@ func getValues(v interface{}, skipFields map[string]bool) []string {
 	return values
 }
 
-// generateMarkdownHeader creates the Markdown header row (with bold text)
-// and a separator row. It uses runewidth to calculate visible widths.
-// For terminal rendering, ANSI Bold is applied directly.
+// generateMarkdownHeader creates the Markdown header row and a separator row.
+// For terminal rendering, ANSI Bold is applied (using chalk).
+// In this version, we use separate helper functions for left- and right alignment.
 func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
 	headers := getHeaders(v, skipFields)
 	var builder strings.Builder
 
-	// Header row
+	// Header row: For this example, let's say the first column ("Repo") is left aligned,
+	// all others right aligned.
 	builder.WriteString("| ")
 	for i, header := range headers {
-		// Compute needed padding using visible width.
-		visibleWidth := runewidth.StringWidth(header)
-		padLength := fieldSizes[i] - visibleWidth
-		if padLength < 0 {
-			padLength = 0
-		}
 		var cell string
-		// Left-align first column ("Repo"), right-align others.
 		if i == 0 {
-			cell = header + strings.Repeat(" ", padLength)
+			cell = leftAligned(header, fieldSizes[i])
 		} else {
-			cell = strings.Repeat(" ", padLength) + header
+			cell = rightAligned(header, fieldSizes[i])
 		}
 		// Wrap with Bold codes.
 		boldCell := chalk.Bold.TextStyle(cell)
@@ -86,7 +102,7 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 	}
 	builder.WriteString("\n")
 
-	// Separator row (simple dashes)
+	// Separator row (simple dashes): add two extra characters for the leading and trailing spaces.
 	builder.WriteString("|")
 	for i := range headers {
 		builder.WriteString(strings.Repeat("-", fieldSizes[i]+2) + "|")
@@ -96,18 +112,15 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 }
 
 // generateMarkdownRow creates a Markdown table row for a single struct instance.
-// It updates computed fields (Mean, Q1–Q4) when v is a *RepoStats and applies alignment:
-// the first column ("Repo") is left aligned, while all others are right aligned.
-// Also, for the "Language" column, getColoredLanguage is applied.
+// It updates computed fields (Mean, Q1–Q4) when v is a *RepoStats and applies alignment
+// (first column left aligned, others right aligned).
 func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool, year int) string {
-	// If v is a *RepoStats, update computed fields.
 	if repoStats, ok := v.(*RepoStats); ok {
 		repoAgeMonths := calculateRepoAgeInMonths(repoStats.Age)
 		averageCommits := 0
 		if repoAgeMonths > 0 {
 			averageCommits = repoStats.Commit / repoAgeMonths
 		}
-
 		quarterlyCommits := map[string]int{
 			"Q1": repoStats.Frequency[fmt.Sprintf("%d-01", year)] +
 				repoStats.Frequency[fmt.Sprintf("%d-02", year)] +
@@ -122,7 +135,6 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 				repoStats.Frequency[fmt.Sprintf("%d-11", year)] +
 				repoStats.Frequency[fmt.Sprintf("%d-12", year)],
 		}
-
 		repoStats.Mean = averageCommits
 		repoStats.Q1 = quarterlyCommits["Q1"]
 		repoStats.Q2 = quarterlyCommits["Q2"]
@@ -130,49 +142,34 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 		repoStats.Q4 = quarterlyCommits["Q4"]
 	}
 
-	// Get headers and raw values.
 	headers := getHeaders(v, skipFields)
 	values := getValues(v, skipFields)
 	var builder strings.Builder
 
 	builder.WriteString("| ")
 	for i, value := range values {
-		// For the "Age" column, apply color.
+		// For special columns, you may process color or trimming as needed…
 		if i < len(headers) && headers[i] == "Age" {
 			value = getColoredAge(value, fieldSizes[i])
 		}
-
-		// For the "Language" column, apply color.
 		if i < len(headers) && headers[i] == "Language" {
 			value = getColoredLanguage(value, fieldSizes[i])
 		}
-
-		// For the "Size" column, apply color.
 		if i < len(headers) && headers[i] == "Size" {
 			value = getColoredSize(value, fieldSizes[i])
 		}
-
 		if i < len(headers) && headers[i] == "Remote" {
 			value = TrimGitHubRemote(value)
 		}
-
-		// For other columns, dim if zero.
 		if i > 0 {
 			value = getDimIfZero(value, fieldSizes[i])
 		}
 
-		// Compute visible width and calculate the necessary padding.
-		visibleWidth := runewidth.StringWidth(value)
-		padLength := fieldSizes[i] - visibleWidth
-		if padLength < 0 {
-			padLength = 0
-		}
 		var cell string
-		// Left align only the first column ("Repo"); right align others.
 		if i == 0 {
-			cell = value + strings.Repeat(" ", padLength)
+			cell = leftAligned(value, fieldSizes[i])
 		} else {
-			cell = strings.Repeat(" ", padLength) + value
+			cell = rightAligned(value, fieldSizes[i])
 		}
 		builder.WriteString(cell + " | ")
 	}
