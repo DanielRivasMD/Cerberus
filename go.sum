@@ -2,6 +2,8 @@ github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874 h1:HJG6e5Dhx
 github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874/go.mod h1:AfBfXSLpb7L0u2WqMs/uxEOTzTshRR6//UZgyJ1M72w=
 github.com/DanielRivasMD/horus v0.0.0-20250523045430-566d11f1f1a9 h1:y+lJXhNRAgivDmJoXkKBYVsA2fk2S9r+r5yFlUane40=
 github.com/DanielRivasMD/horus v0.0.0-20250523045430-566d11f1f1a9/go.mod h1:RxifFjF4J7o+TTS00sIgeWwbvZyQ57L4D2xTlEJle5Y=
+github.com/DanielRivasMD/horus v0.0.0-20250529103145-d806f61070a4 h1:3xIFASSQ/GXDOeYxAOD3fHXpgn5Y1mr6SBm1jDP8E0Q=
+github.com/DanielRivasMD/horus v0.0.0-20250529103145-d806f61070a4/go.mod h1:BisGQ8GHkm7XjzTnXRhGznkg9wFaCHiIQXroK3vhKu8=
 github.com/atrox/homedir v1.0.0 h1:99Vwk+XECZTDLaAPeMj7vF9JMNcVarWddqPeyDzJT5E=
 github.com/atrox/homedir v1.0.0/go.mod h1:ZKVEIDNKscX8qV1TyrwLP+ayjv3XQO7wbVmc5EW00A8=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
