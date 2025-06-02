@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,8 @@ type RepoDescribe struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// populateRepoDescribe gathers information about a repository,
+// wrapping any errors using the Horus library for additional context.
 func populateRepoDescribe() (RepoDescribe, error) {
 	// initialize RepoDescribe
 	describe := RepoDescribe{}
@@ -29,12 +32,12 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	// list files
 	pwd, err := os.Getwd()
 	if err != nil {
-		return describe, err
+		return describe, horus.Wrap(err, "populateRepoDescribe", "failed to get current working directory")
 	}
 
 	files, err := domovoi.ListFiles(pwd)
 	if err != nil {
-		return describe, err
+		return describe, horus.Wrap(err, "populateRepoDescribe", "failed to list files in directory")
 	}
 
 	// iterate on files
@@ -42,14 +45,14 @@ func populateRepoDescribe() (RepoDescribe, error) {
 		if file == "README.md" {
 			describe.Overview, err = parseReadme(file, overviewLen)
 			if err != nil {
-				return describe, err
+				return describe, horus.Wrap(err, "populateRepoDescribe", "failed to parse README.md file")
 			}
 		}
 
 		if file == "LICENSE" {
 			describe.License, err = detectLicense(file)
 			if err != nil {
-				return describe, err
+				return describe, horus.Wrap(err, "populateRepoDescribe", "failed to detect LICENSE file")
 			}
 		}
 	}
@@ -57,7 +60,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	// define remote
 	remoteURL, err := getRemote()
 	if err != nil {
-		return describe, err
+		return describe, horus.Wrap(err, "populateRepoDescribe", "failed to obtain remote URL")
 	}
 	describe.Remote = remoteURL
 

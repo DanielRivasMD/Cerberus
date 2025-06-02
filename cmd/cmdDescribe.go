@@ -43,10 +43,8 @@ var describeCmd = &cobra.Command{
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Run: func(cmd *cobra.Command, args []string) {
-
 		err := handleGit("describe", verbose)
 		horus.CheckErr(err)
-
 	},
 }
 
