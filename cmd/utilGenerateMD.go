@@ -38,6 +38,34 @@ func rightAligned(content string, width int) string {
 	return strings.Repeat(" ", pad) + content
 }
 
+// formatCell applies header-specific formatting (coloring, trimming, dimming) then aligns the text.
+func formatCell(header, value string, fieldSize, idx int) string {
+	// Apply special processing for particular columns.
+	switch header {
+	case "Age":
+		value = getColoredAge(value, fieldSize)
+	case "Language":
+		value = getColoredLanguage(value, fieldSize)
+	case "Size":
+		value = getColoredSize(value, fieldSize)
+	case "Remote":
+		value = TrimGitHubRemote(value)
+	}
+	// For non-first columns, dim zero-values.
+	if idx > 0 {
+		value = getDimIfZero(value, fieldSize)
+	}
+
+	// Choose alignment based on column index.
+	var cell string
+	if idx == 0 {
+		cell = leftAligned(value, fieldSize)
+	} else {
+		cell = rightAligned(value, fieldSize)
+	}
+	return cell
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // getHeaders extracts the field names of a struct,
@@ -148,29 +176,8 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 
 	builder.WriteString("| ")
 	for i, value := range values {
-		// For special columns, you may process color or trimming as needed…
-		if i < len(headers) && headers[i] == "Age" {
-			value = getColoredAge(value, fieldSizes[i])
-		}
-		if i < len(headers) && headers[i] == "Language" {
-			value = getColoredLanguage(value, fieldSizes[i])
-		}
-		if i < len(headers) && headers[i] == "Size" {
-			value = getColoredSize(value, fieldSizes[i])
-		}
-		if i < len(headers) && headers[i] == "Remote" {
-			value = TrimGitHubRemote(value)
-		}
-		if i > 0 {
-			value = getDimIfZero(value, fieldSizes[i])
-		}
-
-		var cell string
-		if i == 0 {
-			cell = leftAligned(value, fieldSizes[i])
-		} else {
-			cell = rightAligned(value, fieldSizes[i])
-		}
+		// Process each cell generically via our helper:
+		cell := formatCell(headers[i], value, fieldSizes[i], i)
 		builder.WriteString(cell + " | ")
 	}
 	builder.WriteString("\n")
