@@ -69,6 +69,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 // generateDescribeMD generates the Markdown table for the describe command.
 func generateDescribeMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote, Overview, License.
+	// Note: "Remote" is being skipped, so only the remaining fields will appear.
 	fieldSizes := []int{repoLen, overviewLen, licenseLen}
 	skip := map[string]bool{
 		"Remote": true,
@@ -86,8 +87,15 @@ func generateDescribeMD(repoNames []string) string {
 		return &d, nil
 	}
 
+	// Create an aligners map that forces all fields to be left aligned.
+	aligners := map[string]Alignment{
+		"Repo":     AlignLeft,
+		"Overview": AlignLeft,
+		"License":  AlignLeft,
+	}
+
 	// Extra parameter is not used for describe (pass 0).
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0, aligners)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
