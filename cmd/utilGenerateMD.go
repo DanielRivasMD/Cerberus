@@ -65,7 +65,7 @@ func centerAligned(content string, width int) string {
 	return strings.Repeat(" ", padLeft) + content + strings.Repeat(" ", padRight)
 }
 
-// formatCell applies any header‐specific processing (coloring, trimming, dimming)
+// formatCell applies any header‑specific processing (coloring, trimming, etc.)
 // and then aligns the text using the alignment specified in the aligners map.
 // If no alignment is provided for a header, it defaults to left alignment for the first column
 // and right alignment for subsequent columns.
@@ -81,8 +81,8 @@ func formatCell(header, value string, fieldSize, idx int, aligners map[string]Al
 	case "Remote":
 		value = TrimGitHubRemote(value)
 	}
-	// For non-first columns, dim the value if appropriate.
-	if idx > 0 {
+	// Only apply dimming when the value is "0". Otherwise, leave the value intact.
+	if idx > 0 && value == "0" {
 		value = getDimIfZero(value, fieldSize)
 	}
 
@@ -92,7 +92,8 @@ func formatCell(header, value string, fieldSize, idx int, aligners map[string]Al
 	if aligners != nil {
 		alignment, ok = aligners[header]
 	}
-	// Default: first column left, others right.
+	// Default: if no alignment is set, use left for the first column,
+	// otherwise default to right alignment.
 	if !ok {
 		if idx == 0 {
 			alignment = AlignLeft
@@ -101,7 +102,7 @@ func formatCell(header, value string, fieldSize, idx int, aligners map[string]Al
 		}
 	}
 
-	// Now use a switch-case to select the helper.
+	// Now select the proper helper based on the alignment value.
 	var cell string
 	switch alignment.Dir {
 	case "left":
@@ -185,7 +186,6 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 		case "right":
 			cell = rightAligned(header, fieldSizes[i])
 		default:
-			// THROW AN ERROR HERE WITH HORUS
 			panic(horus.NewHerror("generateMarkdownHeader", "invalid alignment value", fmt.Errorf("invalid alignment: %s", alignment.Dir), nil))
 		}
 
