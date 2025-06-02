@@ -18,6 +18,20 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Alignment represents a simple alignment setting.
+type Alignment struct {
+	Dir string
+}
+
+var (
+	// Predefined alignment values.
+	AlignLeft   = Alignment{"left"}
+	AlignRight  = Alignment{"right"}
+	AlignCenter = Alignment{"center"}
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // leftAligned formats the content so that it is padded on the right to meet the required width.
 func leftAligned(content string, width int) string {
 	visible := runewidth.StringWidth(content)
@@ -38,9 +52,25 @@ func rightAligned(content string, width int) string {
 	return strings.Repeat(" ", pad) + content
 }
 
-// formatCell applies header-specific formatting (coloring, trimming, dimming) then aligns the text.
-func formatCell(header, value string, fieldSize, idx int) string {
-	// Apply special processing for particular columns.
+// centerAligned centers the content within width characters.
+// It splits the extra space into left and right portions.
+func centerAligned(content string, width int) string {
+	visible := runewidth.StringWidth(content)
+	padTotal := width - visible
+	if padTotal <= 0 {
+		return content
+	}
+	padLeft := padTotal / 2
+	padRight := padTotal - padLeft
+	return strings.Repeat(" ", padLeft) + content + strings.Repeat(" ", padRight)
+}
+
+// formatCell applies any header‐specific processing (coloring, trimming, dimming)
+// and then aligns the text using the alignment specified in the aligners map.
+// If no alignment is provided for a header, it defaults to left alignment for the first column
+// and right alignment for subsequent columns.
+func formatCell(header, value string, fieldSize, idx int, aligners map[string]Alignment) string {
+	// Header-specific processing.
 	switch header {
 	case "Age":
 		value = getColoredAge(value, fieldSize)
@@ -51,18 +81,39 @@ func formatCell(header, value string, fieldSize, idx int) string {
 	case "Remote":
 		value = TrimGitHubRemote(value)
 	}
-	// For non-first columns, dim zero-values.
+	// For non-first columns, dim the value if appropriate.
 	if idx > 0 {
 		value = getDimIfZero(value, fieldSize)
 	}
 
-	// Choose alignment based on column index.
-	var cell string
-	if idx == 0 {
-		cell = leftAligned(value, fieldSize)
-	} else {
-		cell = rightAligned(value, fieldSize)
+	// Lookup alignment for this header.
+	var alignment Alignment
+	var ok bool
+	if aligners != nil {
+		alignment, ok = aligners[header]
 	}
+	// Default: first column left, others right.
+	if !ok {
+		if idx == 0 {
+			alignment = AlignLeft
+		} else {
+			alignment = AlignRight
+		}
+	}
+
+	// Now use a switch-case to select the helper.
+	var cell string
+	switch alignment.Dir {
+	case "left":
+		cell = leftAligned(value, fieldSize)
+	case "center":
+		cell = centerAligned(value, fieldSize)
+	case "right":
+		cell = rightAligned(value, fieldSize)
+	default:
+		panic(horus.NewHerror("formatCell", "invalid alignment value", fmt.Errorf("invalid alignment: %s", alignment.Dir), nil))
+	}
+
 	return cell
 }
 
@@ -108,29 +159,43 @@ func getValues(v interface{}, skipFields map[string]bool) []string {
 }
 
 // generateMarkdownHeader creates the Markdown header row and a separator row.
-// For terminal rendering, ANSI Bold is applied (using chalk).
-// In this version, we use separate helper functions for left- and right alignment.
-func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[string]bool) string {
+// ANSI Bold is applied via chalk.
+// It accepts an aligners map whose keys are header names and values indicate alignment.
+func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[string]bool, aligners map[string]Alignment) string {
 	headers := getHeaders(v, skipFields)
 	var builder strings.Builder
 
-	// Header row: For this example, let's say the first column ("Repo") is left aligned,
-	// all others right aligned.
+	// Header row.
 	builder.WriteString("| ")
 	for i, header := range headers {
-		var cell string
-		if i == 0 {
-			cell = leftAligned(header, fieldSizes[i])
-		} else {
-			cell = rightAligned(header, fieldSizes[i])
+		// Look up the desired alignment for this header.
+		alignment, ok := aligners[header]
+		if !ok {
+			// Default to right alignment if none is provided.
+			alignment = AlignRight
 		}
-		// Wrap with Bold codes.
+
+		var cell string
+		// Use a switch statement to select the proper helper.
+		switch alignment.Dir {
+		case "left":
+			cell = leftAligned(header, fieldSizes[i])
+		case "center":
+			cell = centerAligned(header, fieldSizes[i])
+		case "right":
+			cell = rightAligned(header, fieldSizes[i])
+		default:
+			// THROW AN ERROR HERE WITH HORUS
+			panic(horus.NewHerror("generateMarkdownHeader", "invalid alignment value", fmt.Errorf("invalid alignment: %s", alignment.Dir), nil))
+		}
+
+		// Wrap with Bold ANSI codes.
 		boldCell := chalk.Bold.TextStyle(cell)
 		builder.WriteString(boldCell + " | ")
 	}
 	builder.WriteString("\n")
 
-	// Separator row (simple dashes): add two extra characters for the leading and trailing spaces.
+	// Separator row: Add two extra characters (one each for the leading and trailing spaces).
 	builder.WriteString("|")
 	for i := range headers {
 		builder.WriteString(strings.Repeat("-", fieldSizes[i]+2) + "|")
@@ -141,8 +206,9 @@ func generateMarkdownHeader(v interface{}, fieldSizes []int, skipFields map[stri
 
 // generateMarkdownRow creates a Markdown table row for a single struct instance.
 // It updates computed fields (Mean, Q1–Q4) when v is a *RepoStats and applies alignment
-// (first column left aligned, others right aligned).
-func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool, year int) string {
+// based on the provided aligners map.
+func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]bool, year int, aligners map[string]Alignment) string {
+	// If v is a *RepoStats, update computed fields.
 	if repoStats, ok := v.(*RepoStats); ok {
 		repoAgeMonths := calculateRepoAgeInMonths(repoStats.Age)
 		averageCommits := 0
@@ -176,8 +242,8 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 
 	builder.WriteString("| ")
 	for i, value := range values {
-		// Process each cell generically via our helper:
-		cell := formatCell(headers[i], value, fieldSizes[i], i)
+		// Process each cell using our generic helper.
+		cell := formatCell(headers[i], value, fieldSizes[i], i, aligners)
 		builder.WriteString(cell + " | ")
 	}
 	builder.WriteString("\n")
@@ -195,6 +261,7 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 // - fieldSizes: a slice of column widths (in characters)
 // - skip: a map of field names to skip
 // - extra: an extra parameter (for example, the year for stats formatting)
+// - aligners: a map whose keys are header names and values are Alignment settings (left, right, center)
 func generateGenericMD[T any](
 	sample *T,
 	repoNames []string,
@@ -202,11 +269,12 @@ func generateGenericMD[T any](
 	fieldSizes []int,
 	skip map[string]bool,
 	extra int,
+	aligners map[string]Alignment,
 ) string {
 	var builder strings.Builder
 
 	// Generate header row.
-	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip))
+	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip, aligners))
 
 	originalDir, err := domovoi.RecallDir()
 	horus.CheckErr(err)
@@ -224,7 +292,7 @@ func generateGenericMD[T any](
 			panic(horus.NewHerror("generateGenericMD", "populateFunc failed for repository", err, map[string]any{"repoName": repoName}))
 		}
 
-		builder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra))
+		builder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra, aligners))
 		err = domovoi.ChangeDir(originalDir)
 		horus.CheckErr(err)
 	}
