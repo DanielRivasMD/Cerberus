@@ -90,6 +90,7 @@ func populateRepoStats(year int) (RepoStats, error) {
 // generateStatsMD generates the Markdown table for the stats command.
 func generateStatsMD(repoNames []string, year int) string {
 	// Define field sizes for: Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
+	// (Note: Ensure that the order of fieldSizes matches the header order in your RepoStats struct.)
 	fieldSizes := []int{repoLen, commitLen, ageLen, languageLen, linesLen, sizeLen, meanLen, qLen, qLen, qLen, qLen}
 	skip := map[string]bool{
 		"Remote":    true,
@@ -97,7 +98,7 @@ func generateStatsMD(repoNames []string, year int) string {
 		"Frequency": true,
 	}
 
-	var sample RepoStats // sample instance for header generation
+	var sample RepoStats // Sample instance for header generation
 
 	// populateFunc for stats command.
 	populateFunc := func(repoName string) (*RepoStats, error) {
@@ -109,8 +110,16 @@ func generateStatsMD(repoNames []string, year int) string {
 		return &s, nil
 	}
 
+	// Create an aligners map such that only the "Repo" column is left aligned.
+	// For any header not explicitly provided, the default behavior in formatCell
+	// will be: if index==0 then left aligned, otherwise right aligned.
+	aligners := map[string]Alignment{
+		"Repo": AlignLeft,
+		"Language": AlignLeft,
+	}
+
 	// Pass the year as the extra parameter.
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year, aligners)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
