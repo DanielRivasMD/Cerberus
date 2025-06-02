@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,49 +37,51 @@ type RepoStats struct {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// populateRepoStats gathers statistics for a repository for the given year,
+// wrapping any errors using the Horus library for additional context.
 func populateRepoStats(year int) (RepoStats, error) {
 	// initialize RepoStats
 	stats := RepoStats{}
 
 	// fetch repository metrics
-	tokeiOut, _, ε := domovoi.CaptureExecCmd("tokei", "-C")
-	if ε != nil {
-		return stats, ε
+	tokeiOut, _, err := domovoi.CaptureExecCmd("tokei", "-C")
+	if err != nil {
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to capture tokei output")
 	}
 
 	// define language & lines
-	tokeiStats, language, ε := popualteTokei(tokeiOut)
-	if ε != nil {
-		return stats, ε
+	tokeiStats, language, err := populateTokei(tokeiOut)
+	if err != nil {
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to parse tokei output")
 	}
 	stats.Language = language + " " + strconv.Itoa(tokeiStats.Lines.Percentage) + "%"
 	stats.Lines = tokeiStats.Lines.Number
 
 	// define age
-	age, ε := repoAge()
-	if ε != nil {
-		return stats, ε
+	age, err := repoAge()
+	if err != nil {
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to determine repository age")
 	}
 	stats.Age = age
 
-	// define number commits
-	commitCount, ε := countCommits()
-	if ε != nil {
-		return stats, ε
+	// define number of commits
+	commitCount, err := countCommits()
+	if err != nil {
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to count commits")
 	}
 	stats.Commit = commitCount
 
 	// define repo size
-	size, ε := repoSize()
-	if ε != nil {
-		return stats, ε
+	size, err := repoSize()
+	if err != nil {
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to determine repository size")
 	}
 	stats.Size = size
 
-	// define commit frecuency
+	// define commit frequency
 	commitFrequency, err := commitFrequency(year)
 	if err != nil {
-		return stats, err
+		return stats, horus.Wrap(err, "populateRepoStats", "failed to fetch commit frequency")
 	}
 	stats.Frequency = commitFrequency
 
@@ -114,7 +117,7 @@ func generateStatsMD(repoNames []string, year int) string {
 	// For any header not explicitly provided, the default behavior in formatCell
 	// will be: if index==0 then left aligned, otherwise right aligned.
 	aligners := map[string]Alignment{
-		"Repo": AlignLeft,
+		"Repo":     AlignLeft,
 		"Language": AlignLeft,
 	}
 
