@@ -5,6 +5,7 @@ go 1.23.4
 require (
 	github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874
 	github.com/DanielRivasMD/horus v0.0.0-20250529103145-d806f61070a4
+	github.com/guptarohit/asciigraph v0.7.3
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5

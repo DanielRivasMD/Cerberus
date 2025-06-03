@@ -1,7 +1,5 @@
 github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874 h1:HJG6e5DhxIISPUWC1F8k9elcMvDajxPxCMIe7SaqhYw=
 github.com/DanielRivasMD/domovoi v0.0.0-20250523133919-940e8593d874/go.mod h1:AfBfXSLpb7L0u2WqMs/uxEOTzTshRR6//UZgyJ1M72w=
-github.com/DanielRivasMD/horus v0.0.0-20250523045430-566d11f1f1a9 h1:y+lJXhNRAgivDmJoXkKBYVsA2fk2S9r+r5yFlUane40=
-github.com/DanielRivasMD/horus v0.0.0-20250523045430-566d11f1f1a9/go.mod h1:RxifFjF4J7o+TTS00sIgeWwbvZyQ57L4D2xTlEJle5Y=
 github.com/DanielRivasMD/horus v0.0.0-20250529103145-d806f61070a4 h1:3xIFASSQ/GXDOeYxAOD3fHXpgn5Y1mr6SBm1jDP8E0Q=
 github.com/DanielRivasMD/horus v0.0.0-20250529103145-d806f61070a4/go.mod h1:BisGQ8GHkm7XjzTnXRhGznkg9wFaCHiIQXroK3vhKu8=
 github.com/atrox/homedir v1.0.0 h1:99Vwk+XECZTDLaAPeMj7vF9JMNcVarWddqPeyDzJT5E=
@@ -17,6 +15,8 @@ github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nos
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/guptarohit/asciigraph v0.7.3 h1:p05XDDn7cBTWiBqWb30mrwxd6oU0claAjqeytllnsPY=
+github.com/guptarohit/asciigraph v0.7.3/go.mod h1:dYl5wwK4gNsnFf9Zp+l06rFiDZ5YtXM6x7SRWZ3KGag=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
