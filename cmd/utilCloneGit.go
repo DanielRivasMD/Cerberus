@@ -46,11 +46,26 @@ func repoNameFromURL(repoURL string) string {
 // and clones each repository into a subdirectory under targetDir.
 // Each repository is cloned into targetDir/<repoName>.
 // If targetDir is an empty string, it defaults to "." (the current directory).
+// Before opening the CSV file, it verifies its existence using domovoi.FileExist.
+// Here we pass an anonymous NotFoundAction function that panics gracefully if the file is not found.
 // Any errors encountered during file reading or cloning are wrapped using horus.Wrap.
 func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 	// Set default targetDir if not provided.
 	if strings.TrimSpace(targetDir) == "" {
 		targetDir = "."
+	}
+
+	// Verify that the CSV file exists.
+	exists, err := domovoi.FileExist(csvFile, func(filePath string) (bool, error) {
+		panic(horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": filePath}))
+	}, true)
+	if err != nil {
+		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to check existence of CSV file: "+csvFile)
+	}
+	if !exists {
+		// This block is normally unreachable because the anonymous function panics,
+		// but is retained for completeness.
+		return horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": csvFile})
 	}
 
 	// Open the CSV file.
