@@ -18,9 +18,8 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"os"
 
+	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -29,12 +28,7 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: write to a file
-// TODO: remember all remotes
-// TODO: clone all remotes
-// TODO: plot historical
-
-// declarations
+// Global declarations (reserved for future variables)
 var (
 	verbose bool
 	output  string
@@ -59,7 +53,7 @@ const (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// rootCmd
+// rootCmd defines the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "cerberus",
 	Short: "",
@@ -78,65 +72,62 @@ var rootCmd = &cobra.Command{
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// execute
+// Execute is the entry point for executing the command.
+// It wraps the root command execution and handles any errors using Horus's checkErr function.
 func Execute() {
-	ε := rootCmd.Execute()
-	if ε != nil {
-		log.Fatal(ε)
-		os.Exit(1)
-	}
+	err := rootCmd.Execute()
+	horus.CheckErr(err)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// initialize config
-func initializeConfig(κ *cobra.Command, configPath string, configName string) error {
+// initializeConfig sets up configuration using Viper.
+// It also leverages the Domovoi library for any additional configuration management.
+func initializeConfig(cmd *cobra.Command, configPath string, configName string) error {
+	// Create a new Viper instance for configuration management.
+	vConfig := viper.New()
 
-	// initialize viper
-	ω := viper.New()
+	// Set the path and name of the configuration file.
+	vConfig.AddConfigPath(configPath)
+	vConfig.SetConfigName(configName)
 
-	// collect config path & file from persistent flags
-	ω.AddConfigPath(configPath)
-	ω.SetConfigName(configName)
-
-	// read config file
-	ε := ω.ReadInConfig()
-	if ε != nil {
-		// okay if no config file
-		_, ϙ := ε.(viper.ConfigFileNotFoundError)
-		if !ϙ {
-			// error if not parse config file
-			return ε
+	// Attempt to read the configuration file.
+	err := vConfig.ReadInConfig()
+	if err != nil {
+		// If the config file is not found, that's acceptable.
+		_, notFound := err.(viper.ConfigFileNotFoundError)
+		if !notFound {
+			// Return the error for any other issue.
+			return err
 		}
 	}
 
-	// bind flags viper
-	bindFlags(κ, ω)
+	// Bind command flags with configuration values.
+	bindFlags(cmd, vConfig)
 
 	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// bind each cobra flag viper configuration
-func bindFlags(κ *cobra.Command, ω *viper.Viper) {
-
-	κ.Flags().VisitAll(func(ζ *pflag.Flag) {
-
-		// apply viper config value flag
-		if !ζ.Changed && ω.IsSet(ζ.Name) {
-			ν := ω.Get(ζ.Name)
-			κ.Flags().Set(ζ.Name, fmt.Sprintf("%v", ν))
+// bindFlags synchronizes each Cobra flag with the corresponding Viper configuration value.
+// If the flag is unset and a configuration value is available, the flag is updated.
+func bindFlags(cmd *cobra.Command, vConfig *viper.Viper) {
+	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+		// If the flag wasn't explicitly set but has a value in the config, apply that value.
+		if !flag.Changed && vConfig.IsSet(flag.Name) {
+			value := vConfig.Get(flag.Name)
+			cmd.Flags().Set(flag.Name, fmt.Sprintf("%v", value))
 		}
 	})
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// execute prior main
+// Execute prior main.
+// init registers persistent flags and performs additional initialization tasks.
 func init() {
-
-	// persistent flags
+	// Set up persistent flags.
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "File output")
 }
