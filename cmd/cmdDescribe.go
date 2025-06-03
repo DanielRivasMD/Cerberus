@@ -32,7 +32,6 @@ var ()
 // describeCmd
 var describeCmd = &cobra.Command{
 	Use:     "describe",
-	Aliases: []string{"d"},
 	Short:   "Describe main repository features",
 	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
 `,
