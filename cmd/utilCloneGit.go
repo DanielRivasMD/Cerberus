@@ -32,23 +32,11 @@ func cloneRepository(repoURL, targetDir string) error {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// repoNameFromURL extracts the repository name from a given Git URL.
-// For example, given "https://github.com/user/project.git", it returns "project".
-func repoNameFromURL(repoURL string) string {
-	base := filepath.Base(repoURL)
-	base = strings.TrimSuffix(base, ".git")
-	return base
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// cloneRepositoriesFromCSV reads a CSV file whose rows contain Git repository URLs,
-// and clones each repository into a subdirectory under targetDir.
-// Each repository is cloned into targetDir/<repoName>.
+// cloneRepositoriesFromCSV reads a CSV file whose rows contain Git repository details,
+// where the first column is the repository name and the second column is the repository URL.
+// It then clones each repository into a subdirectory under targetDir using the provided repository name.
 // If targetDir is an empty string, it defaults to "." (the current directory).
-// Before opening the CSV file, it verifies its existence using domovoi.FileExist.
-// Here we pass an anonymous NotFoundAction function that panics gracefully if the file is not found.
-// Any errors encountered during file reading or cloning are wrapped using horus.Wrap.
+// Before opening the CSV file, it verifies its existence using domovoi.FileExist with an anonymous NotFoundAction.
 func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 	// Set default targetDir if not provided.
 	if strings.TrimSpace(targetDir) == "" {
@@ -63,8 +51,7 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to check existence of CSV file: "+csvFile)
 	}
 	if !exists {
-		// This block is normally unreachable because the anonymous function panics,
-		// but is retained for completeness.
+		// This block is normally unreachable because the anonymous function panics.
 		return horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": csvFile})
 	}
 
@@ -82,20 +69,21 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to parse CSV file: "+csvFile)
 	}
 
-	// Process each row.
+	// Process each row. Expecting two columns: [repoName, repoURL].
 	for i, record := range records {
-		// Skip empty rows.
-		if len(record) == 0 {
+		// Check that there are at least two columns.
+		if len(record) < 2 {
 			continue
 		}
 
-		repoURL := strings.TrimSpace(record[0])
-		if repoURL == "" {
+		repoName := strings.TrimSpace(record[0])
+		repoURL := strings.TrimSpace(record[1])
+
+		// Skip if either field is empty.
+		if repoName == "" || repoURL == "" {
 			continue
 		}
 
-		// Determine the repository subdirectory name using repoNameFromURL.
-		repoName := repoNameFromURL(repoURL)
 		finalTargetDir := filepath.Join(targetDir, repoName)
 
 		// Clone the repository.
