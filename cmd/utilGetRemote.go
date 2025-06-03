@@ -15,8 +15,10 @@ import (
 
 // extracts repository remote URL
 func getRemote() (string, error) {
-	out, _, ε := domovoi.CaptureExecCmd("git", "remote", "-v")
-	horus.CheckErr(ε)
+	out, _, err := domovoi.CaptureExecCmd("git", "remote", "-v")
+	if err != nil {
+		return "", horus.Wrap(err, "getRemote", "failed to capture git remote output")
+	}
 
 	return parseRemoteURL(string(out)), nil
 }
