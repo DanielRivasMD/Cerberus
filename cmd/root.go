@@ -29,24 +29,31 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: write to a file
+// TODO: remember all remotes
+// TODO: clone all remotes
+// TODO: plot historical
+
 // declarations
 var (
 	verbose bool
 )
 
 const (
-	repoLen     = 20
+	repoLen = 20
 
-	commitLen = 6
-	ageLen = 6
+	commitLen   = 6
+	ageLen      = 6
 	languageLen = 15
-	linesLen = 6
-	sizeLen = 7
-	meanLen = 4
-	qLen = 3
+	linesLen    = 6
+	sizeLen     = 7
+	meanLen     = 4
+	qLen        = 3
 
 	overviewLen = 95
 	licenseLen  = 7
+
+	remoteLen = 95
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
