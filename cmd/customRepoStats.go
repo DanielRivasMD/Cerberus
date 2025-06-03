@@ -89,6 +89,39 @@ func populateRepoStats(year int) (RepoStats, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// populateHistoricalRepoStats collects historical data by invoking populateRepoStats for each year
+// in the range from startYear to endYear (inclusive). It returns a map where the keys are years and
+// the values are the corresponding RepoStats structs.
+// If startYear is greater than endYear, it returns an error.
+func populateHistoricalRepoStats(startYear, endYear int) (map[int]RepoStats, error) {
+	// Validate the year range.
+	if startYear > endYear {
+		return nil, horus.NewHerror(
+			"populateHistoricalRepoStats",
+			"invalid year range: startYear must not be greater than endYear",
+			nil,
+			map[string]any{"startYear": startYear, "endYear": endYear},
+		)
+	}
+
+	historicalStats := make(map[int]RepoStats)
+	for year := startYear; year <= endYear; year++ {
+		stats, err := populateRepoStats(year)
+		if err != nil {
+			return nil, horus.Wrap(
+				err,
+				"populateHistoricalRepoStats",
+				"failed to collect stats for year "+strconv.Itoa(year),
+			)
+		}
+		historicalStats[year] = stats
+	}
+
+	return historicalStats, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // generateStatsMD generates the Markdown table for the stats command.
 func generateStatsMD(repoNames []string, year int) string {
 	// Define field sizes for: Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
