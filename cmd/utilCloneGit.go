@@ -45,8 +45,14 @@ func repoNameFromURL(repoURL string) string {
 // cloneRepositoriesFromCSV reads a CSV file whose rows contain Git repository URLs,
 // and clones each repository into a subdirectory under targetDir.
 // Each repository is cloned into targetDir/<repoName>.
+// If targetDir is an empty string, it defaults to "." (the current directory).
 // Any errors encountered during file reading or cloning are wrapped using horus.Wrap.
 func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
+	// Set default targetDir if not provided.
+	if strings.TrimSpace(targetDir) == "" {
+		targetDir = "."
+	}
+
 	// Open the CSV file.
 	file, err := os.Open(csvFile)
 	if err != nil {
