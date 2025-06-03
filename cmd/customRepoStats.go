@@ -18,7 +18,6 @@ import (
 // ensuring that the automatic header generator includes these columns.
 type RepoStats struct {
 	Repo      string         // Repo name
-	Remote    string         // Remote URL of the repository
 	Commit    int            // Total number of commits
 	Age       string         // Age of the repository (e.g., "3y 2m")
 	Language  string         // Main programming language of the repository, along with details (e.g., "Go 80%")

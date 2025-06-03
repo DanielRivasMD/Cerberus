@@ -16,7 +16,6 @@ import (
 // RepoDescribe represents the repository features.
 type RepoDescribe struct {
 	Repo     string
-	Remote   string
 	Overview string
 	License  string
 }
@@ -56,13 +55,6 @@ func populateRepoDescribe() (RepoDescribe, error) {
 			}
 		}
 	}
-
-	// define remote
-	remoteURL, err := getRemote()
-	if err != nil {
-		return describe, horus.Wrap(err, "populateRepoDescribe", "failed to obtain remote URL")
-	}
-	describe.Remote = remoteURL
 
 	return describe, nil
 }
