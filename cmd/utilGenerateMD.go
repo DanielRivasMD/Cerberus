@@ -5,6 +5,8 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"os"
 	"reflect"
@@ -256,14 +258,15 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 // --------------------------------------------------------------------------------
 
 // generateGenericMD is a generic function that builds a Markdown table for any type T.
-// - sample: a pointer to a sample instance (used for header generation)
-// - repoNames: slice of repository names to process
-// - populateFunc: a function that, given a repo name, returns a pointer to a populated instance of T
-// - fieldSizes: a slice of column widths (in characters)
-// - skip: a map of field names to skip
-// - extra: an extra parameter (for example, the year for stats formatting)
-// - aligners: a map whose keys are header names and values are Alignment settings (left, right, center)
-// - outputFile: if non-empty, the generated Markdown will be written to this file.
+//   - sample: a pointer to a sample instance (used for header generation)
+//   - repoNames: slice of repository names to process
+//   - populateFunc: a function that, given a repo name, returns a pointer to a populated instance of T
+//   - fieldSizes: a slice of column widths (in characters) used for Markdown formatting
+//   - skip: a map of field names to skip
+//   - extra: an extra parameter (for example, the year for stats formatting)
+//   - aligners: a map whose keys are header names and values are Alignment settings (left, right, center)
+//   - outputFile: if non-empty, the generated CSV table will be written to this file.
+//     The Markdown output is always returned.
 func generateGenericMD[T any](
 	sample *T,
 	repoNames []string,
@@ -274,14 +277,21 @@ func generateGenericMD[T any](
 	aligners map[string]Alignment,
 	outputFile string,
 ) string {
-	var builder strings.Builder
+	var markdownBuilder strings.Builder
+	var csvRows [][]string
 
-	// Generate header row.
-	builder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip, aligners))
+	// Generate Markdown header.
+	markdownBuilder.WriteString(generateMarkdownHeader(sample, fieldSizes, skip, aligners))
+	// For CSV output, get the raw (unformatted) headers.
+	if outputFile != "" {
+		csvHeaders := getHeaders(sample, skip)
+		csvRows = append(csvRows, csvHeaders)
+	}
 
 	originalDir, err := domovoi.RecallDir()
 	horus.CheckErr(err)
 
+	// Process each repository.
 	for _, repoName := range repoNames {
 		// Change directory if processing multiple repositories.
 		if len(repoNames) > 1 {
@@ -291,26 +301,44 @@ func generateGenericMD[T any](
 
 		instance, err := populateFunc(repoName)
 		if err != nil {
-			// Wrap the error using Horus and then panic.
 			panic(horus.NewHerror("generateGenericMD", "populateFunc failed for repository", err, map[string]any{"repoName": repoName}))
 		}
 
-		builder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra, aligners))
+		// Append Markdown row.
+		markdownBuilder.WriteString(generateMarkdownRow(instance, fieldSizes, skip, extra, aligners))
+		// Append CSV row with raw values.
+		if outputFile != "" {
+			values := getValues(instance, skip)
+			csvRows = append(csvRows, values)
+		}
+
 		err = domovoi.ChangeDir(originalDir)
 		horus.CheckErr(err)
 	}
 
-	output := builder.String()
+	markdownOutput := markdownBuilder.String()
 
-	// If an output file is provided, write the generated Markdown to that file.
+	// Write CSV output to file if required.
 	if outputFile != "" {
-		err := os.WriteFile(outputFile, []byte(output), 0644)
+		var csvBuf bytes.Buffer
+		csvWriter := csv.NewWriter(&csvBuf)
+		for _, row := range csvRows {
+			if err := csvWriter.Write(row); err != nil {
+				panic(horus.Wrap(err, "generateGenericMD", "failed to write CSV row"))
+			}
+		}
+		csvWriter.Flush()
+		if err := csvWriter.Error(); err != nil {
+			panic(horus.Wrap(err, "generateGenericMD", "failed to flush CSV writer"))
+		}
+
+		err := os.WriteFile(outputFile, csvBuf.Bytes(), 0644)
 		if err != nil {
-			panic(horus.Wrap(err, "generateGenericMD", "failed to write output to file"))
+			panic(horus.Wrap(err, "generateGenericMD", "failed to write CSV output to file"))
 		}
 	}
 
-	return output
+	return markdownOutput
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
