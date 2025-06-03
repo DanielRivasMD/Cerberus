@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -262,6 +263,7 @@ func generateMarkdownRow(v interface{}, fieldSizes []int, skipFields map[string]
 // - skip: a map of field names to skip
 // - extra: an extra parameter (for example, the year for stats formatting)
 // - aligners: a map whose keys are header names and values are Alignment settings (left, right, center)
+// - outputFile: if non-empty, the generated Markdown will be written to this file.
 func generateGenericMD[T any](
 	sample *T,
 	repoNames []string,
@@ -270,6 +272,7 @@ func generateGenericMD[T any](
 	skip map[string]bool,
 	extra int,
 	aligners map[string]Alignment,
+	outputFile string,
 ) string {
 	var builder strings.Builder
 
@@ -297,7 +300,17 @@ func generateGenericMD[T any](
 		horus.CheckErr(err)
 	}
 
-	return builder.String()
+	output := builder.String()
+
+	// If an output file is provided, write the generated Markdown to that file.
+	if outputFile != "" {
+		err := os.WriteFile(outputFile, []byte(output), 0644)
+		if err != nil {
+			panic(horus.Wrap(err, "generateGenericMD", "failed to write output to file"))
+		}
+	}
+
+	return output
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
