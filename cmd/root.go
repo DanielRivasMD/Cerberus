@@ -37,6 +37,7 @@ import (
 // declarations
 var (
 	verbose bool
+	output  string
 )
 
 const (
@@ -137,6 +138,7 @@ func init() {
 
 	// persistent flags
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "File output")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
