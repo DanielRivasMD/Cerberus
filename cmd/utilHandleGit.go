@@ -42,6 +42,8 @@ func handleGit(reportType string, verbose bool) error {
 			fmt.Println(generateStatsMD(repoNames, year))
 		case "describe":
 			fmt.Println(generateDescribeMD(repoNames))
+		case "remember":
+			fmt.Println(generateRememberMD(repoNames))
 		default:
 			return fmt.Errorf("unknown report type: %s", reportType)
 		}
@@ -62,6 +64,8 @@ func handleGit(reportType string, verbose bool) error {
 			fmt.Println(generateStatsMD(repoNames, year))
 		case "describe":
 			fmt.Println(generateDescribeMD(repoNames))
+		case "remember":
+			fmt.Println(generateRememberMD(repoNames))
 		default:
 			return fmt.Errorf("unknown report type: %s", reportType)
 		}
