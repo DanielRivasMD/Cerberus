@@ -44,15 +44,12 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 	}
 
 	// Verify that the CSV file exists.
-	exists, err := domovoi.FileExist(csvFile, func(filePath string) (bool, error) {
+	// Anonymous function panics on not found scenario
+	_, err := domovoi.FileExist(csvFile, func(filePath string) (bool, error) {
 		panic(horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": filePath}))
 	}, true)
 	if err != nil {
 		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to check existence of CSV file: "+csvFile)
-	}
-	if !exists {
-		// This block is normally unreachable because the anonymous function panics.
-		return horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": csvFile})
 	}
 
 	// Open the CSV file.
