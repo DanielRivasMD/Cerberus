@@ -35,7 +35,7 @@ var (
 )
 
 const (
-	repoLen = 20
+	repoLen = 25
 
 	commitLen   = 6
 	ageLen      = 6
@@ -45,7 +45,7 @@ const (
 	meanLen     = 4
 	qLen        = 3
 
-	overviewLen = 95
+	overviewLen = 93
 	licenseLen  = 7
 
 	remoteLen = 95
