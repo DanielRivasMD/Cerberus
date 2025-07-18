@@ -45,7 +45,7 @@ const (
 	meanLen     = 4
 	qLen        = 3
 
-	overviewLen = 93
+	overviewLen = 92
 	licenseLen  = 7
 
 	remoteLen = 95
