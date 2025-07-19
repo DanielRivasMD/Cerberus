@@ -38,7 +38,8 @@ var (
 	plot        bool   // Plot flag: true = render as ASCII graph; false = output as Markdown table
 )
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // renderCommitStats handles the formatting of commit data.
 // If plot is true, it returns an ASCII graph generated with asciigraph,
 // otherwise it returns a Markdown table, using aggregation type ("quarterly" or "yearly")
@@ -84,7 +85,8 @@ func renderCommitStats(commitCounts []float64, aggregation string, year int, plo
 	return builder.String()
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // statsCmd
 var statsCmd = &cobra.Command{
 	Use:   "stats",
@@ -92,26 +94,26 @@ var statsCmd = &cobra.Command{
 	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) +
 		chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + "\n",
 	Example: chalk.Cyan.Color("stats --repo . --year 2025 --time quarterly --plot true"),
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	Run: func(cmd *cobra.Command, args []string) {
 
 		err := handleGit("stats", verbose)
 		horus.CheckErr(err)
 
-		// Sample commit data over time.
-		// Replace these sample values with real aggregated commits data.
-		var commitCounts []float64
-		if aggregation == "quarterly" {
-			// Example: data for 4 quarters.
-			commitCounts = []float64{15, 22, 18, 30}
-		} else {
-			// Default to "yearly": sample data for several years.
-			commitCounts = []float64{50, 65, 80, 100, 90, 75}
-		}
+		// // Sample commit data over time.
+		// // Replace these sample values with real aggregated commits data.
+		// var commitCounts []float64
+		// if aggregation == "quarterly" {
+		// 	// Example: data for 4 quarters.
+		// 	commitCounts = []float64{15, 22, 18, 30}
+		// } else {
+		// 	// Default to "yearly": sample data for several years.
+		// 	commitCounts = []float64{50, 65, 80, 100, 90, 75}
+		// }
 
-		// Use the helper function to render commit statistics.
-		output := renderCommitStats(commitCounts, aggregation, year, plot)
-		fmt.Println(output)
+		// // Use the helper function to render commit statistics.
+		// output := renderCommitStats(commitCounts, aggregation, year, plot)
+		// fmt.Println(output)
 	},
 }
 
