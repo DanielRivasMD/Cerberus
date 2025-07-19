@@ -14,6 +14,14 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// trimmer returns the substring of desc up to the first period or newline.
+func trimmer(desc string) string {
+	if idx := strings.IndexAny(desc, ".\n"); idx >= 0 {
+		return strings.TrimSpace(desc[:idx+1])
+	}
+	return strings.TrimSpace(desc)
+}
+
 // parseReadme extracts the content under "## Overview" from the given file,
 // joins the lines with a space (thus removing newlines),
 // and then limits the returned string to at most maxChars characters.
@@ -63,9 +71,9 @@ func parseReadme(filename string, maxChars int) (string, error) {
 		)
 	}
 
-	// Join the lines with a space (removing any newline characters).
-	result := strings.Join(descriptionLines, " ")
-	result = strings.TrimSpace(result)
+	// Join the lines with a newline
+	result := strings.Join(descriptionLines, "\n")
+	result = trimmer(result)
 
 	// Truncate the result if it exceeds maxChars.
 	if len(result) > maxChars {
