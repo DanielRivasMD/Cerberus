@@ -1,3 +1,7 @@
 edit cmds:
-	- sync => clone or pull all repos
-	- register => collect all repo information for sync
+- `clone` => clone or pull all repos
+- `register` => collect all repo information for sync
+
+- add simple unicode graphics
+
+- add wrapper for `readme` & `roadmap` using `fzf`
