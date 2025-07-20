@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -61,7 +62,8 @@ zellij run --name readme \
 	'`
 
 		// execute command
-		domovoi.ExecCmd("bash", "-c", cmdReadme)
+		err := domovoi.ExecCmd("bash", "-c", cmdReadme)
+		horus.CheckErr(err)
 	},
 }
 
