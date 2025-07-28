@@ -2,6 +2,5 @@ edit cmds:
 - `clone` => clone or pull all repos
 - `register` => collect all repo information for sync
 
-- add simple unicode graphics
-
-- add wrapper for `readme` & `roadmap` using `fzf`
+- add simple unicode graphics => use `julia`
+- add wrapper or analoge of `k` shell plugin
