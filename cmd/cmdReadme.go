@@ -16,36 +16,36 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package cmd
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import (
 	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
-	"github.com/ttacon/chalk"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// declarations
-var ()
+var readmeCmd = &cobra.Command{
+	Use:     "readme",
+	Short:   "readem",
+	Long:    helpReadme,
+	Example: exampleReadme,
+
+	Run: runReadme,
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// readmeCmd
-var readmeCmd = &cobra.Command{
-	Use:   "readme",
-	Short: "readem" + chalk.Yellow.Color("") + ".",
-	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
-`,
+func init() {
+	rootCmd.AddCommand(readmeCmd)
+}
 
-	Example: `
-` + chalk.Cyan.Color("") + ` help ` + chalk.Yellow.Color("") + chalk.Yellow.Color("readme"),
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+func runReadme(cmd *cobra.Command, args []string) {
 
-	Run: func(cmd *cobra.Command, args []string) {
-
-		// Preview & open README.md in a floating Zellij pane
-		cmdReadme := `
+	cmdReadme := `
 zellij run --name readme \
 	--close-on-exit --floating \
 	--height 100 --width 130 --x 15 --y 0 \
@@ -61,19 +61,8 @@ zellij run --name readme \
 	[[ -n $file ]] && mdcat --paginate --columns=100 "$file"
 	'`
 
-		// execute command
-		err := domovoi.ExecCmd("bash", "-c", cmdReadme)
-		horus.CheckErr(err)
-	},
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// execute prior main
-func init() {
-	rootCmd.AddCommand(readmeCmd)
-
-	// flags
+	err := domovoi.ExecCmd("bash", "-c", cmdReadme)
+	horus.CheckErr(err)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

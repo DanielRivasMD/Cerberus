@@ -22,4 +22,10 @@ var helpRemember = domovoi.FormatHelp(
 	"Enables the creation of cobra applications using predefined templates for rapid development",
 )
 
+var helpReadme = domovoi.FormatHelp(
+	"Daniel Rivas",
+	"danielrivasmd@gmail.com",
+	"Enables the creation of cobra applications using predefined templates for rapid development",
+)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
