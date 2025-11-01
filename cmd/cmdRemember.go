@@ -16,44 +16,35 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package cmd
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import (
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
-	"github.com/ttacon/chalk"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Global declarations
-var ()
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// rememberCmd
 var rememberCmd = &cobra.Command{
-	Use:   "remember",
-	Short: "" + chalk.Yellow.Color("") + ".",
-	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
-`,
+	Use:     "remember",
+	Short:   "remember",
+	Long:    helpRemember,
+	Example: exampleRemember,
 
-	Example: `
-` + chalk.Cyan.Color("") + ` help ` + chalk.Yellow.Color("") + chalk.Yellow.Color("remember"),
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	Run: func(cmd *cobra.Command, args []string) {
-		err := handleGit("remember", verbose)
-		horus.CheckErr(err)
-	},
+	Run: runRemember,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// execute prior main
 func init() {
 	rootCmd.AddCommand(rememberCmd)
+}
 
-	// flags
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func runRemember(cmd *cobra.Command, args []string) {
+	err := handleGit("remember", verbose)
+	horus.CheckErr(err)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
