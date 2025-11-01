@@ -22,7 +22,7 @@ import (
 // verbose controls extra output in domovoi.DirExist.
 func handleGit(reportType string, verbose bool) error {
 	// Check if the .git directory exists.
-	ok, err := domovoi.DirExist(".git", horus.NullAction(), verbose)
+	ok, err := domovoi.DirExist(".git", horus.NullAction(false), verbose)
 	if err != nil {
 		return err
 	}
