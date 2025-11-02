@@ -25,4 +25,24 @@ var exampleReadme = domovoi.FormatExample(
 	[]string{"readme"},
 )
 
+var exampleDescribe = domovoi.FormatExample(
+	"cerberus",
+	[]string{"describe"},
+)
+
+var exampleClone = domovoi.FormatExample(
+	"cerberus",
+	[]string{"clone"},
+)
+
+var exampleRoadmap = domovoi.FormatExample(
+	"cerberus",
+	[]string{"roadmap"},
+)
+
+var exampleStats = domovoi.FormatExample(
+	"cerberus",
+	[]string{"stats --repo . --year 2025 --time quarterly --plot true"},
+)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
