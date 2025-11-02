@@ -28,4 +28,28 @@ var helpReadme = domovoi.FormatHelp(
 	"Enables the creation of cobra applications using predefined templates for rapid development",
 )
 
+var helpDescribe = domovoi.FormatHelp(
+	"Daniel Rivas",
+	"danielrivasmd@gmail.com",
+	"Enables the creation of cobra applications using predefined templates for rapid development",
+)
+
+var helpClone = domovoi.FormatHelp(
+	"Daniel Rivas",
+	"danielrivasmd@gmail.com",
+	"Enables the creation of cobra applications using predefined templates for rapid development",
+)
+
+var helpRoadmap = domovoi.FormatHelp(
+	"Daniel Rivas",
+	"danielrivasmd@gmail.com",
+	"Enables the creation of cobra applications using predefined templates for rapid development",
+)
+
+var helpStats = domovoi.FormatHelp(
+	"Daniel Rivas",
+	"danielrivasmd@gmail.com",
+	"Enables the creation of cobra applications using predefined templates for rapid development",
+)
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
