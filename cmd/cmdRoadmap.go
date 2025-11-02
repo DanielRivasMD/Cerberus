@@ -16,36 +16,36 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package cmd
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import (
 	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
-	"github.com/ttacon/chalk"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// declarations
-var ()
+var roadmapCmd = &cobra.Command{
+	Use:     "roadmap",
+	Short:   "",
+	Long:    helpRoadmap,
+	Example: exampleRoadmap,
+
+	Run: runRoadmap,
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// roadmapCmd
-var roadmapCmd = &cobra.Command{
-	Use:   "roadmap",
-	Short: "" + chalk.Yellow.Color("") + ".",
-	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
-`,
+func init() {
+	rootCmd.AddCommand(roadmapCmd)
+}
 
-	Example: `
-` + chalk.Cyan.Color("") + ` help ` + chalk.Yellow.Color("") + chalk.Yellow.Color("roadmap"),
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+func runRoadmap(cmd *cobra.Command, args []string) {
 
-	Run: func(cmd *cobra.Command, args []string) {
-
-		// Preview & open ROADMAP.txt in a floating Zellij pane
-		cmdReadme := `
+	cmdReadme := `
 zellij run --name roadmap \
 	--close-on-exit --floating \
 	--height 100 --width 130 --x 15 --y 0 \
@@ -61,19 +61,8 @@ zellij run --name roadmap \
 	[[ -n $file ]] && hx "$file"
 	'`
 
-		// execute command
-		err := domovoi.ExecCmd("bash", "-c", cmdReadme)
-		horus.CheckErr(err)
-	},
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// execute prior main
-func init() {
-	rootCmd.AddCommand(roadmapCmd)
-
-	// flags
+	err := domovoi.ExecCmd("bash", "-c", cmdReadme)
+	horus.CheckErr(err)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
