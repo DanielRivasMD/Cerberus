@@ -60,7 +60,6 @@ zellij run --name readme \
 		)
 	[[ -n $file ]] && mdcat --paginate --columns=100 "$file"
 	'`
-
 	err := domovoi.ExecCmd("bash", "-c", cmdReadme)
 	horus.CheckErr(err)
 }
