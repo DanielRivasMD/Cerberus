@@ -16,6 +16,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package cmd
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import (
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
@@ -24,7 +26,6 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Global declarations
 var (
 	csvFile   string
 	targetDir string
@@ -32,32 +33,29 @@ var (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// cloneCmd
 var cloneCmd = &cobra.Command{
-	Use:   "clone",
-	Short: "" + chalk.Yellow.Color("") + ".",
-	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) + chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + `
-`,
+	Use:     "clone",
+	Short:   "" + chalk.Yellow.Color("") + ".",
+	Long:    helpClone,
+	Example: exampleClone,
 
-	Example: `
-` + chalk.Cyan.Color("") + ` help ` + chalk.Yellow.Color("") + chalk.Yellow.Color("clone"),
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	Run: func(cmd *cobra.Command, args []string) {
-		err := cloneRepositoriesFromCSV(csvFile, targetDir)
-		horus.CheckErr(err)
-	},
+	Run: runClone,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// execute prior main
 func init() {
 	rootCmd.AddCommand(cloneCmd)
 
-	// flags
 	cloneCmd.Flags().StringVarP(&csvFile, "csv", "", "", "File in csv format containing remote repositories")
 	cloneCmd.Flags().StringVarP(&targetDir, "directory", "", "", "Directory to clone repositories")
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func runClone(cmd *cobra.Command, args []string) {
+	err := cloneRepositoriesFromCSV(csvFile, targetDir)
+	horus.CheckErr(err)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
