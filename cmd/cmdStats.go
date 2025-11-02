@@ -16,6 +16,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package cmd
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import (
 	"fmt"
 	"sort"
@@ -25,12 +27,10 @@ import (
 	"github.com/DanielRivasMD/horus"
 	"github.com/guptarohit/asciigraph"
 	"github.com/spf13/cobra"
-	"github.com/ttacon/chalk"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// declarations
 var (
 	repository  string
 	year        int
@@ -87,48 +87,49 @@ func renderCommitStats(commitCounts []float64, aggregation string, year int, plo
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// statsCmd
 var statsCmd = &cobra.Command{
-	Use:   "stats",
-	Short: "Collect repository stats",
-	Long: chalk.Green.Color(chalk.Bold.TextStyle("Daniel Rivas ")) +
-		chalk.Dim.TextStyle(chalk.Italic.TextStyle("<danielrivasmd@gmail.com>")) + "\n",
-	Example: chalk.Cyan.Color("stats --repo . --year 2025 --time quarterly --plot true"),
+	Use:     "stats",
+	Short:   "Collect repository stats",
+	Long:    helpStats,
+	Example: exampleStats,
 
-	Run: func(cmd *cobra.Command, args []string) {
-
-		err := handleGit("stats", verbose)
-		horus.CheckErr(err)
-
-		// // Sample commit data over time.
-		// // Replace these sample values with real aggregated commits data.
-		// var commitCounts []float64
-		// if aggregation == "quarterly" {
-		// 	// Example: data for 4 quarters.
-		// 	commitCounts = []float64{15, 22, 18, 30}
-		// } else {
-		// 	// Default to "yearly": sample data for several years.
-		// 	commitCounts = []float64{50, 65, 80, 100, 90, 75}
-		// }
-
-		// // Use the helper function to render commit statistics.
-		// output := renderCommitStats(commitCounts, aggregation, year, plot)
-		// fmt.Println(output)
-	},
+	Run: runStats,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// execute prior main
 func init() {
 	rootCmd.AddCommand(statsCmd)
 
-	// flags
 	statsCmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
 	statsCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation (default: current year)")
+
 	// New flags for aggregation type and plotting mode.
 	statsCmd.Flags().StringVarP(&aggregation, "time", "t", "yearly", "Time aggregation for commit frequency: quarterly or yearly")
 	statsCmd.Flags().BoolVarP(&plot, "plot", "p", true, "Render data as a graph (true) or as markdown (false)")
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func runStats(cmd *cobra.Command, args []string) {
+
+	err := handleGit("stats", verbose)
+	horus.CheckErr(err)
+
+	// // Sample commit data over time.
+	// // Replace these sample values with real aggregated commits data.
+	// var commitCounts []float64
+	// if aggregation == "quarterly" {
+	// 	// Example: data for 4 quarters.
+	// 	commitCounts = []float64{15, 22, 18, 30}
+	// } else {
+	// 	// Default to "yearly": sample data for several years.
+	// 	commitCounts = []float64{50, 65, 80, 100, 90, 75}
+	// }
+
+	// // Use the helper function to render commit statistics.
+	// output := renderCommitStats(commitCounts, aggregation, year, plot)
+	// fmt.Println(output)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
