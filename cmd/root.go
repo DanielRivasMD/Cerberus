@@ -19,7 +19,11 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
@@ -42,12 +46,14 @@ func Execute() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var (
+var RootFlags rootFlags
+
+type rootFlags struct {
 	verbose bool
 	output  string
-)
+}
 
-type defaultVals struct {
+type defaults struct {
 	repoLen     int
 	commitLen   int
 	ageLen      int
@@ -61,7 +67,7 @@ type defaultVals struct {
 	remoteLen   int
 }
 
-var Defaults = defaultVals{
+var Defaults = defaults{
 	repoLen:     25,
 	commitLen:   6,
 	ageLen:      6,
@@ -78,49 +84,72 @@ var Defaults = defaultVals{
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
-	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "File output")
+	rootCmd.PersistentFlags().BoolVarP(&RootFlags.verbose, "verbose", "v", false, "Verbose")
+	rootCmd.PersistentFlags().StringVarP(&RootFlags.output, "output", "o", "", "File output")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// handleGit is a generic function that performs the ".git" check and then
-// dispatches to the appropriate report generation function.
-//
-// reportType should be "stats" or "describe".
-// repository is the path (or name) for the repo to report on.
-// year is used in stats reporting.
-// verbose controls extra output in domovoi.DirExist.
+// generateRememberCSV writes repoName,repoURL rows either to stdout or to the file specified by RootFlags.output.
+func generateRememberCSV(repoNames []string) error {
+	var outFile *os.File
+	var err error
+
+	if strings.TrimSpace(RootFlags.output) != "" {
+		// create or truncate the file
+		outFile, err = os.Create(RootFlags.output)
+		if err != nil {
+			return horus.Wrap(err, "generateRememberCSV", "failed to create output file: "+RootFlags.output)
+		}
+		defer outFile.Close()
+	} else {
+		outFile = os.Stdout
+	}
+
+	w := csv.NewWriter(outFile)
+	defer w.Flush()
+
+	// optional header
+	if err := w.Write([]string{"repoName", "repoURL"}); err != nil {
+		return err
+	}
+
+	for _, repo := range repoNames {
+		remoteURL, err := resolveRemoteURL(repo)
+		if err != nil {
+			remoteURL = ""
+		}
+		if err := w.Write([]string{repo, remoteURL}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func resolveRemoteURL(repo string) (string, error) {
+	repoPath := filepath.Join(repository, repo)
+	out, _, err := domovoi.CaptureExecCmd("git", "-C", repoPath, "config", "--get", "remote.origin.url")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func handleGit(reportType string, verbose bool) error {
-	// Check if the .git directory exists.
 	ok, err := domovoi.DirExist(".git", horus.NullAction(false), verbose)
 	if err != nil {
 		return err
 	}
 
 	var repoNames []string
-
 	if !ok {
-		// OUT branch: The ".git" directory does not exist.
-		// List the subdirectories from the given repository.
 		repoNames, err = domovoi.ListDirs(repository)
 		if err != nil {
 			return err
 		}
-		// Generate the report based on reportType.
-		switch reportType {
-		case "stats":
-			fmt.Println(generateStatsMD(repoNames, year))
-		case "describe":
-			fmt.Println(generateDescribeMD(repoNames))
-		case "remember":
-			fmt.Println(generateRememberMD(repoNames))
-		default:
-			return fmt.Errorf("unknown report type: %s", reportType)
-		}
 	} else {
-		// IN branch: The ".git" directory is present.
-		// If the repository is ".", then update it from the current directory.
 		if repository == "." {
 			repoName, err := domovoi.CurrentDir()
 			if err != nil {
@@ -128,18 +157,18 @@ func handleGit(reportType string, verbose bool) error {
 			}
 			repository = repoName
 		}
-		// Create a slice with just this repository.
 		repoNames = append(repoNames, repository)
-		switch reportType {
-		case "stats":
-			fmt.Println(generateStatsMD(repoNames, year))
-		case "describe":
-			fmt.Println(generateDescribeMD(repoNames))
-		case "remember":
-			fmt.Println(generateRememberMD(repoNames))
-		default:
-			return fmt.Errorf("unknown report type: %s", reportType)
-		}
+	}
+
+	switch reportType {
+	case "stats":
+		fmt.Println(generateStatsMD(repoNames, year))
+	case "describe":
+		fmt.Println(generateDescribeMD(repoNames))
+	case "remember":
+		return generateRememberCSV(repoNames)
+	default:
+		return fmt.Errorf("unknown report type: %s", reportType)
 	}
 
 	return nil
