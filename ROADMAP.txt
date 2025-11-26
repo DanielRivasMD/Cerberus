@@ -1,6 +1,9 @@
-edit cmds:
-- `clone` => clone or pull all repos
-- `register` => collect all repo information for sync
+commands are at MVP stage!
+prepare release
+refactor & tidy up code
 
 - add simple unicode graphics => use `julia`
 - add wrapper or analoge of `k` shell plugin
+
+==================================================
+==================================================
