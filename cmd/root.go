@@ -37,15 +37,7 @@ var rootCmd = &cobra.Command{
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Execute() {
-	err := rootCmd.Execute()
-	horus.CheckErr(err)
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
-	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "File output")
+	horus.CheckErr(rootCmd.Execute())
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,23 +47,40 @@ var (
 	output  string
 )
 
-// TODO: refactor as struct
-const (
-	repoLen = 25
+type defaultVals struct {
+	repoLen     int
+	commitLen   int
+	ageLen      int
+	languageLen int
+	linesLen    int
+	sizeLen     int
+	meanLen     int
+	qLen        int
+	overviewLen int
+	licenseLen  int
+	remoteLen   int
+}
 
-	commitLen   = 6
-	ageLen      = 6
-	languageLen = 15
-	linesLen    = 6
-	sizeLen     = 7
-	meanLen     = 4
-	qLen        = 3
+var Defaults = defaultVals{
+	repoLen:     25,
+	commitLen:   6,
+	ageLen:      6,
+	languageLen: 15,
+	linesLen:    6,
+	sizeLen:     7,
+	meanLen:     4,
+	qLen:        3,
+	overviewLen: 92,
+	licenseLen:  7,
+	remoteLen:   95,
+}
 
-	overviewLen = 92
-	licenseLen  = 7
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	remoteLen = 95
-)
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "File output")
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
