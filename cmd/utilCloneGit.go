@@ -44,9 +44,9 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 	}
 
 	// Verify that the CSV file exists.
-	// Anonymous function panics on not found scenario
 	_, err := domovoi.FileExist(csvFile, func(filePath string) (bool, error) {
-		panic(horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil, map[string]any{"csvFile": filePath}))
+		panic(horus.NewHerror("cloneRepositoriesFromCSV", "CSV file does not exist", nil,
+			map[string]any{"csvFile": filePath}))
 	}, true)
 	if err != nil {
 		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to check existence of CSV file: "+csvFile)
@@ -66,9 +66,15 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 		return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to parse CSV file: "+csvFile)
 	}
 
+	// Skip header if present.
+	start := 0
+	if len(records) > 0 && strings.EqualFold(records[0][0], "repoName") {
+		start = 1
+	}
+
 	// Process each row. Expecting two columns: [repoName, repoURL].
-	for i, record := range records {
-		// Check that there are at least two columns.
+	for i := start; i < len(records); i++ {
+		record := records[i]
 		if len(record) < 2 {
 			continue
 		}
@@ -84,9 +90,9 @@ func cloneRepositoriesFromCSV(csvFile, targetDir string) error {
 		finalTargetDir := filepath.Join(targetDir, repoName)
 
 		// Clone the repository.
-		err := cloneRepository(repoURL, finalTargetDir)
-		if err != nil {
-			return horus.Wrap(err, "cloneRepositoriesFromCSV", "failed to clone repository at row "+strconv.Itoa(i+1))
+		if err := cloneRepository(repoURL, finalTargetDir); err != nil {
+			return horus.Wrap(err, "cloneRepositoriesFromCSV",
+				"failed to clone repository at row "+strconv.Itoa(i+1))
 		}
 	}
 
