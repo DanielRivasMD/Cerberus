@@ -42,7 +42,7 @@ func populateRepoRemember() (RepoRemember, error) {
 // generateRememberMD generates the Markdown table for the describe command.
 func generateRememberMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote
-	fieldSizes := []int{repoLen, remoteLen}
+	fieldSizes := []int{Defaults.repoLen, Defaults.remoteLen}
 	skip := map[string]bool{}
 
 	var sample RepoRemember // used solely for header generation

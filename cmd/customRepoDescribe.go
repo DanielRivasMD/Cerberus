@@ -42,7 +42,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 	// iterate on files
 	for _, file := range files {
 		if file == "README.md" {
-			describe.Overview, err = parseReadme(file, overviewLen)
+			describe.Overview, err = parseReadme(file, Defaults.overviewLen)
 			if err != nil {
 				return describe, horus.Wrap(err, "populateRepoDescribe", "failed to parse README.md file")
 			}
@@ -65,7 +65,7 @@ func populateRepoDescribe() (RepoDescribe, error) {
 func generateDescribeMD(repoNames []string) string {
 	// Define column widths for: Repo, Remote, Overview, License.
 	// Note: "Remote" is being skipped, so only the remaining fields will appear.
-	fieldSizes := []int{repoLen, overviewLen, licenseLen}
+	fieldSizes := []int{Defaults.repoLen, Defaults.overviewLen, Defaults.licenseLen}
 	skip := map[string]bool{
 		"Remote": true,
 	}

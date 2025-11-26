@@ -126,7 +126,7 @@ func populateHistoricalRepoStats(startYear, endYear int) (map[int]RepoStats, err
 func generateStatsMD(repoNames []string, year int) string {
 	// Define field sizes for: Repo, Language, Age, Commit, Lines, Size, Mean, Q1, Q2, Q3, Q4.
 	// (Note: Ensure that the order of fieldSizes matches the header order in your RepoStats struct.)
-	fieldSizes := []int{repoLen, commitLen, ageLen, languageLen, linesLen, sizeLen, meanLen, qLen, qLen, qLen, qLen}
+	fieldSizes := []int{Defaults.repoLen, Defaults.commitLen, Defaults.ageLen, Defaults.languageLen, Defaults.linesLen, Defaults.sizeLen, Defaults.meanLen, Defaults.qLen, Defaults.qLen, Defaults.qLen, Defaults.qLen}
 	skip := map[string]bool{
 		"Remote":    true,
 		"Files":     true,
