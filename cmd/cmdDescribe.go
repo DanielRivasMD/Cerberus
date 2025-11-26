@@ -43,7 +43,7 @@ func init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func runDescribe(cmd *cobra.Command, args []string) {
-	err := handleGit("describe", verbose)
+	err := handleGit("describe", RootFlags.verbose)
 	horus.CheckErr(err)
 }
 

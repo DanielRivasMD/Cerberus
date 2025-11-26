@@ -113,7 +113,7 @@ func init() {
 
 func runStats(cmd *cobra.Command, args []string) {
 
-	err := handleGit("stats", verbose)
+	err := handleGit("stats", RootFlags.verbose)
 	horus.CheckErr(err)
 
 	// // Sample commit data over time.

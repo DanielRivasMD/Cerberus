@@ -43,7 +43,7 @@ func init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func runRemember(cmd *cobra.Command, args []string) {
-	err := handleGit("remember", verbose)
+	err := handleGit("remember", RootFlags.verbose)
 	horus.CheckErr(err)
 }
 

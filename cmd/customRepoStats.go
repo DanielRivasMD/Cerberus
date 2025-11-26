@@ -154,7 +154,7 @@ func generateStatsMD(repoNames []string, year int) string {
 	}
 
 	// Pass the year as the extra parameter.
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year, aligners, output)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year, aligners, RootFlags.output)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

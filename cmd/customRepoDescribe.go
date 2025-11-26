@@ -90,7 +90,7 @@ func generateDescribeMD(repoNames []string) string {
 	}
 
 	// Extra parameter is not used for describe (pass 0).
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0, aligners, output)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0, aligners, RootFlags.output)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
