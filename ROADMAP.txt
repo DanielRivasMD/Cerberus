@@ -1,6 +1,6 @@
 commands are at MVP stage!
 prepare release
-refactor & tidy up code
+update flags cmd stats
 
 - add simple unicode graphics => use `julia`
 - add wrapper or analoge of `k` shell plugin
