@@ -510,33 +510,6 @@ func formatRepoSize(size int) string {
 	}
 }
 
-// extracts repository remote URL
-func getRemote() (string, error) {
-	out, _, err := domovoi.CaptureExecCmd("git", "remote", "-v")
-	if err != nil {
-		return "", horus.Wrap(err, "getRemote", "failed to capture git remote output")
-	}
-
-	return parseRemoteURL(string(out)), nil
-}
-
-func parseRemoteURL(remoteOutput string) string {
-	// split by lines
-	lines := strings.Split(remoteOutput, "\n")
-	for _, line := range lines {
-		// check for 'origin' remote and extract URL
-		if strings.HasPrefix(line, "origin") {
-			parts := strings.Fields(line) // split line into components
-			if len(parts) >= 2 {
-				// remote URL typically second field
-				return parts[1]
-			}
-		}
-	}
-	// return empty string if no URL is found
-	return ""
-}
-
 func commitFrequency(year int) (map[string]int, error) {
 	// initialize map with all months set 0
 	commitFrequency := map[string]int{
@@ -579,17 +552,6 @@ func commitFrequency(year int) (map[string]int, error) {
 	}
 
 	return commitFrequency, nil
-}
-
-// calculate average commits per month
-func averageCommits(commitFrequency map[string]int) float64 {
-	totalCommits := 0
-	for _, count := range commitFrequency {
-		totalCommits += count
-	}
-
-	// total months year
-	return float64(totalCommits) / 12.0
 }
 
 // detectLicense identifies license type
@@ -946,24 +908,130 @@ func getDimIfZero(value string, width int) string {
 	// Right-align the value within the given width.
 	padded := fmt.Sprintf("%*s", width, value)
 	if value == "0" {
-		// If the value is "0", return the padded string in a dim style.
+		// If the value is "0", return the padded string in a dim style
 		return chalk.Dim.TextStyle(padded)
 	}
 	return padded
 }
 
-// calculateRepoAgeInMonths calculates repository age in months given an "Xy Ym" format.
+// calculateRepoAgeInMonths calculates repository age in months given an "Xy Ym" format
 func calculateRepoAgeInMonths(age string) int {
 	years, months := 0, 0
-	fmt.Sscanf(age, "%dy %dm", &years, &months) // Parse "Xy Ym" format.
+	_, err := fmt.Sscanf(age, "%dy %dm", &years, &months) // Parse "Xy Ym" format
+	horus.CheckErr(err)
 	return (years * 12) + months
 }
 
 // TrimGitHubRemote removes the "https://github.com/" prefix from the provided remote string,
-// if it exists. Otherwise, it returns the string unchanged.
+// if it exists. Otherwise, it returns the string unchanged
 func TrimGitHubRemote(remote string) string {
 	const prefix = "https://github.com/"
 	return strings.TrimPrefix(remote, prefix)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type Pair struct {
+	Number     int
+	Percentage int
+}
+
+type Tokei struct {
+	Files    Pair
+	Lines    Pair
+	Code     Pair
+	Comments Pair
+	Blanks   Pair
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func populateTokei(tokeiOutput string) (Tokei, string, error) {
+	lines := strings.Split(tokeiOutput, "\n")
+	var totalFiles, totalLines, totalCode, totalComments, totalBlanks int
+	var dominantFiles, dominantLines, dominantCode, dominantComments, dominantBlanks int
+	var dominantLanguage string
+
+	for _, line := range lines {
+		// skip separator lines
+		if strings.HasPrefix(line, "=") || strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		// split line into parts
+		parts := strings.Fields(line)
+		if len(parts) < 6 { // ensure enough columns
+			continue
+		}
+
+		// parse total row
+		if strings.ToLower(parts[0]) == "total" {
+			totalFiles, _ = strconv.Atoi(parts[1])
+			totalLines, _ = strconv.Atoi(parts[2])
+			totalCode, _ = strconv.Atoi(parts[3])
+			totalComments, _ = strconv.Atoi(parts[4])
+			totalBlanks, _ = strconv.Atoi(parts[5])
+			continue
+		}
+
+		// parse data each language
+		language := parts[0]
+		files, _ := strconv.Atoi(parts[1])
+		lines, _ := strconv.Atoi(parts[2])
+		code, _ := strconv.Atoi(parts[3])
+		comments, _ := strconv.Atoi(parts[4])
+		blanks, _ := strconv.Atoi(parts[5])
+
+		// update dominant language
+		if lines > dominantLines {
+			dominantLanguage = language
+			dominantFiles = files
+			dominantLines = lines
+			dominantCode = code
+			dominantComments = comments
+			dominantBlanks = blanks
+		}
+	}
+
+	// error if total zero (invalid data)
+	if totalFiles == 0 || totalLines == 0 {
+		return Tokei{}, "", fmt.Errorf("total counts are zero, invalid data")
+	}
+
+	// Tokei struct
+	result := Tokei{
+		Files: Pair{
+			Number:     dominantFiles,
+			Percentage: calculatePercentage(dominantFiles, totalFiles),
+		},
+		Lines: Pair{
+			Number:     dominantLines,
+			Percentage: calculatePercentage(dominantLines, totalLines),
+		},
+		Code: Pair{
+			Number:     dominantCode,
+			Percentage: calculatePercentage(dominantCode, totalCode),
+		},
+		Comments: Pair{
+			Number:     dominantComments,
+			Percentage: calculatePercentage(dominantComments, totalComments),
+		},
+		Blanks: Pair{
+			Number:     dominantBlanks,
+			Percentage: calculatePercentage(dominantBlanks, totalBlanks),
+		},
+	}
+
+	return result, dominantLanguage, nil
+}
+
+
+// calculate percentages dominant language
+func calculatePercentage(dominant, total int) int {
+	if total == 0 {
+		return 0
+	}
+	return (dominant * 100) / total
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
