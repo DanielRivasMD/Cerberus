@@ -18,6 +18,7 @@ var exampleRoot = domovoi.FormatExample(
 var exampleRemember = domovoi.FormatExample(
 	"cerberus",
 	[]string{"remember"},
+	[]string{"remember", "--output", "repos.csv"},
 )
 
 var exampleReadme = domovoi.FormatExample(
@@ -33,6 +34,7 @@ var exampleDescribe = domovoi.FormatExample(
 var exampleClone = domovoi.FormatExample(
 	"cerberus",
 	[]string{"clone"},
+	[]string{"clone", "--csv", "repos.csv"},
 )
 
 var exampleRoadmap = domovoi.FormatExample(
@@ -42,7 +44,7 @@ var exampleRoadmap = domovoi.FormatExample(
 
 var exampleStats = domovoi.FormatExample(
 	"cerberus",
-	[]string{"stats --repo . --year 2025 --time quarterly --plot true"},
+	[]string{"stats"},
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
