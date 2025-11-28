@@ -13,43 +13,43 @@ import (
 var helpRoot = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Provide a set of templates to facilite software deployment",
+	"Guard & handle repos",
 )
 
 var helpRemember = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Recall repos",
 )
 
 var helpReadme = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Browse through README files with ease",
 )
 
 var helpDescribe = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Explore repo descriptions",
 )
 
 var helpClone = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Clone all repos into local",
 )
 
 var helpRoadmap = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Browse through roadmap files seamlessly",
 )
 
 var helpStats = domovoi.FormatHelp(
 	"Daniel Rivas",
 	"danielrivasmd@gmail.com",
-	"Enables the creation of cobra applications using predefined templates for rapid development",
+	"Report repos stats",
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
