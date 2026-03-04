@@ -589,6 +589,7 @@ func trimmer(desc string) string {
 	return strings.TrimSpace(desc)
 }
 
+// TODO: patch description fetching to comply with markdown format, that is, one line difference between Overview header and the text
 // parseReadme extracts the content under "## Overview" from the given file,
 // joins the lines with a space (thus removing newlines),
 // and then limits the returned string to at most maxChars characters.

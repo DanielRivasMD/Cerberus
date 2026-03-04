@@ -7,4 +7,6 @@ update flags cmd stats
 - add wrapper or analoge of `k` shell plugin
 
 ==================================================
+cmd/root.go
+  line 592    TODO   patch description fetching to comply with markdown format, that is, one line difference between Overview header and the text
 ==================================================
