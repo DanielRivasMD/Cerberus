@@ -25,18 +25,8 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var rememberCmd = &cobra.Command{
-	Use:     "remember",
-	Short:   "remember",
-	Long:    helpRemember,
-	Example: exampleRemember,
-
-	Run: runRemember,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 func init() {
+	rememberCmd := MakeCmd("remember", runRemember)
 	rootCmd.AddCommand(rememberCmd)
 }
 
