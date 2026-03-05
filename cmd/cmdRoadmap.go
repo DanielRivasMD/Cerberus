@@ -26,25 +26,15 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var roadmapCmd = &cobra.Command{
-	Use:     "roadmap",
-	Short:   "",
-	Long:    helpRoadmap,
-	Example: exampleRoadmap,
-
-	Run: runRoadmap,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 func init() {
+	roadmapCmd := MakeCmd("roadmap", runRoadmap)
 	rootCmd.AddCommand(roadmapCmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: refactor as string declare
 func runRoadmap(cmd *cobra.Command, args []string) {
-
 	cmdReadme := `
 zellij run --name roadmap \
 	--close-on-exit --floating \
@@ -60,7 +50,6 @@ zellij run --name roadmap \
 		)
 	[[ -n $file ]] && hx "$file"
 	'`
-
 	err := domovoi.ExecCmd("bash", "-c", cmdReadme)
 	horus.CheckErr(err)
 }
