@@ -26,25 +26,15 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var readmeCmd = &cobra.Command{
-	Use:     "readme",
-	Short:   "readem",
-	Long:    helpReadme,
-	Example: exampleReadme,
-
-	Run: runReadme,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 func init() {
+	readmeCmd := MakeCmd("readme", runReadme)
 	rootCmd.AddCommand(readmeCmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: refactor as string declaration
 func runReadme(cmd *cobra.Command, args []string) {
-
 	cmdReadme := `
 zellij run --name readme \
 	--close-on-exit --floating \
