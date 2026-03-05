@@ -21,34 +21,17 @@ package cmd
 import (
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
-	"github.com/ttacon/chalk"
 )
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-var (
-	csvFile   string
-	targetDir string
-)
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-var cloneCmd = &cobra.Command{
-	Use:     "clone",
-	Short:   "" + chalk.Yellow.Color("") + ".",
-	Long:    helpClone,
-	Example: exampleClone,
-
-	Run: runClone,
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func init() {
-	rootCmd.AddCommand(cloneCmd)
+	cloneCmd := MakeCmd("clone", runClone)
 
 	cloneCmd.Flags().StringVarP(&csvFile, "csv", "", "", "File in csv format containing remote repositories")
 	cloneCmd.Flags().StringVarP(&targetDir, "directory", "", "", "Directory to clone repositories")
+
+	rootCmd.AddCommand(cloneCmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,5 +40,12 @@ func runClone(cmd *cobra.Command, args []string) {
 	err := cloneRepositoriesFromCSV(csvFile, targetDir)
 	horus.CheckErr(err)
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var (
+	csvFile   string
+	targetDir string
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
