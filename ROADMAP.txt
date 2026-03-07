@@ -1,10 +1,9 @@
 commands are at MVP stage!
 prepare release
-update flags cmd stats
 
-- add describe for exec in repo
-- add simple unicode graphics => use `julia`
+- add simple unicode graphics
 - add wrapper or analoge of `k` shell plugin
+- add git actions to replace gfold
 
 ==================================================
 cmd/cmdReadme.go
