@@ -21,8 +21,18 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/DanielRivasMD/domovoi"
+	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func IdentityCmd() *cobra.Command {
+	return horus.Must(horus.Must(domovoi.GlobalDocs()).MakeCmd("identity", runIdentity,
+		domovoi.WithAliases([]string{"id"}),
+	))
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,13 +43,6 @@ He was the offspring of the monsters Echidna and Typhon, and was usually describ
 a serpent for a tail, and snakes protruding from his body.
 
 Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours`
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func init() {
-	identityCmd := MakeCmd("identity", runIdentity)
-	rootCmd.AddCommand(identityCmd)
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
