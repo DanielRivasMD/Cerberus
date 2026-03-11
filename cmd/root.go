@@ -19,44 +19,90 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"embed"
+	"sync"
+
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const APP = "cerberus"
-const VERSION = "v0.1.0"
-const NAME = "Daniel Rivas"
-const EMAIL = "<danielrivasmd@gmail.com>"
+//go:embed docs.json
+var docsFS embed.FS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var rootCmd = &cobra.Command{
-	Use:     GetUse("root"),
-	Long:    formatLongHelp(GetHelp("root")),
-	Example: GetExample("root"),
-	Version: VERSION,
+const (
+	APP     = "cerberus"
+	VERSION = "v0.1.0"
+	AUTHOR  = "Daniel Rivas"
+	EMAIL   = "<danielrivasmd@gmail.com>"
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func InitDocs() {
+	info := domovoi.AppInfo{
+		Name:    APP,
+		Version: VERSION,
+		Author:  AUTHOR,
+		Email:   EMAIL,
+	}
+	domovoi.SetGlobalDocsConfig(docsFS, info)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func GetRootCmd() *cobra.Command {
+	onceRoot.Do(func() {
+		d := horus.Must(domovoi.GlobalDocs())
+		var err error
+		rootCmd, err = d.MakeCmd("root", nil)
+		horus.CheckErr(err)
+
+		rootCmd.PersistentFlags().BoolVarP(&rootFlags.verbose, "verbose", "v", false, "Enable verbose diagnostics")
+		rootCmd.Version = VERSION
+	})
+	return rootCmd
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Execute() {
-	horus.CheckErr(rootCmd.Execute())
+	horus.CheckErr(GetRootCmd().Execute())
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&RootFlags.verbose, "verbose", "v", false, "Verbose")
-	rootCmd.PersistentFlags().StringVarP(&RootFlags.output, "output", "o", "", "File output")
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-var RootFlags struct {
+type rootFlag struct {
 	verbose bool
 	output  string
+}
+
+var (
+	onceRoot  sync.Once
+	rootCmd   *cobra.Command
+	rootFlags rootFlag
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func BuildCommands() {
+	root := GetRootCmd()
+	root.AddCommand(
+		CompletionCmd(),
+		IdentityCmd(),
+
+		CloneCmd(),
+		DescribeCmd(),
+		LsCmd(),
+		ReadmeCmd(),
+		RememberCmd(),
+		RoadmapCmd(),
+		StatsCmd(),
+	)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
