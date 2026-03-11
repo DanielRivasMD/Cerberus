@@ -19,19 +19,21 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func init() {
-	cloneCmd := MakeCmd("clone", runClone)
+func CloneCmd()  *cobra.Command {
+	d := horus.Must(domovoi.GlobalDocs())
+	cmd := horus.Must(d.MakeCmd("clone", runClone))
 
-	cloneCmd.Flags().StringVarP(&csvFile, "csv", "", "", "File in csv format containing remote repositories")
-	cloneCmd.Flags().StringVarP(&targetDir, "directory", "", "", "Directory to clone repositories")
+	cmd.Flags().StringVarP(&csvFile, "csv", "", "", "File in csv format containing remote repositories")
+	cmd.Flags().StringVarP(&targetDir, "directory", "", "", "Directory to clone repositories")
 
-	rootCmd.AddCommand(cloneCmd)
+	return cmd
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
