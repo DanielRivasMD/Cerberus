@@ -6,10 +6,8 @@ prepare release
 - add git actions to replace gfold
 
 ==================================================
-cmd/cmdReadme.go
-  line 36     TODO   refactor as string declaration
-cmd/cmdRoadmap.go
-  line 36     TODO   refactor as string declare
+cmd/cmdLs.go
+  line 29     TODO   rework logic & functionality. at the moment, this command is a draft
 cmd/cmdStats.go
-  line 30     TODO   refactor as struct
+  line 54     TODO   repository is declared here globally and used within functions by leaking. the intend implementation is to use it as a flag struct, probably pass a generic struct to the function handleGit
 ==================================================
