@@ -19,22 +19,24 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func init() {
-	rememberCmd := MakeCmd("remember", runRemember)
-	rootCmd.AddCommand(rememberCmd)
+func RememberCmd() *cobra.Command {
+	d := horus.Must(domovoi.GlobalDocs())
+	cmd := horus.Must(d.MakeCmd("remember", runRemember))
+
+	return cmd
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func runRemember(cmd *cobra.Command, args []string) {
-	err := handleGit("remember", RootFlags.verbose)
-	horus.CheckErr(err)
+	horus.CheckErr(handleGit("remember", rootFlags.verbose))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
