@@ -21,13 +21,37 @@ package cmd
 import (
 	"time"
 
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: refactor as struct
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func StatsCmd() *cobra.Command {
+	d := horus.Must(domovoi.GlobalDocs())
+	cmd := horus.Must(d.MakeCmd("stats", runStats))
+
+	cmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
+	cmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation")
+	cmd.Flags().StringVarP(&aggregation, "time", "t", "yearly", "Time aggregation: quarterly or yearly")
+	cmd.Flags().BoolVarP(&plot, "plot", "p", true, "Render as graph or markdown")
+
+	return cmd
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func runStats(cmd *cobra.Command, args []string) {
+	err := handleGit("stats", rootFlags.verbose)
+	horus.CheckErr(err)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: repository is declared here globally and used within functions by leaking. the intend implementation is to use it as a flag struct, probably pass a generic struct to the function handleGit
 var (
 	repository  string
 	year        int
@@ -35,24 +59,7 @@ var (
 	plot        bool
 )
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func init() {
-	statsCmd := MakeCmd("stats", runStats)
-
-	statsCmd.Flags().StringVarP(&repository, "repo", "r", ".", "Repository")
-	statsCmd.Flags().IntVarP(&year, "year", "y", time.Now().Year(), "Year for commit frequency calculation")
-	statsCmd.Flags().StringVarP(&aggregation, "time", "t", "yearly", "Time aggregation: quarterly or yearly")
-	statsCmd.Flags().BoolVarP(&plot, "plot", "p", true, "Render as graph or markdown")
-
-	rootCmd.AddCommand(statsCmd)
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func runStats(cmd *cobra.Command, args []string) {
-	err := handleGit("stats", RootFlags.verbose)
-	horus.CheckErr(err)
+type statsFlag struct {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
