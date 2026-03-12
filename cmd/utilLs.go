@@ -28,7 +28,7 @@ func executeLs(args []string) {
 		args = []string{"."}
 	}
 
-	if lsOpts.directory && lsOpts.noDirectory {
+	if lsFlags.directory && lsFlags.noDirectory {
 		fmt.Fprintf(os.Stderr, "Error: --directory and --no-directory cannot be used together\n")
 		os.Exit(1)
 	}
@@ -50,38 +50,38 @@ func executeLs(args []string) {
 // It implements the logic of the original k's case statement.
 func resolveSortSpec() (string, bool) {
 	// Priority: explicit --sort flag overrides short options
-	if lsOpts.sortWord != "" {
-		switch lsOpts.sortWord {
+	if lsFlags.sortWord != "" {
+		switch lsFlags.sortWord {
 		case "none":
-			return "none", lsOpts.reverse
+			return "none", lsFlags.reverse
 		case "size":
-			return "size", lsOpts.reverse
+			return "size", lsFlags.reverse
 		case "time":
-			return "mtime", lsOpts.reverse
+			return "mtime", lsFlags.reverse
 		case "ctime", "status":
-			return "ctime", lsOpts.reverse
+			return "ctime", lsFlags.reverse
 		case "atime", "access", "use":
-			return "atime", lsOpts.reverse
+			return "atime", lsFlags.reverse
 		default:
 			// fallback to name
-			return "name", lsOpts.reverse
+			return "name", lsFlags.reverse
 		}
 	}
 
 	// Short option logic
 	switch {
-	case lsOpts.unsorted:
-		return "none", lsOpts.reverse
-	case lsOpts.sortBySize:
-		return "size", lsOpts.reverse
-	case lsOpts.sortByTime:
-		return "mtime", lsOpts.reverse
-	case lsOpts.sortByCtime:
-		return "ctime", lsOpts.reverse
-	case lsOpts.sortByAtime:
-		return "atime", lsOpts.reverse
+	case lsFlags.unsorted:
+		return "none", lsFlags.reverse
+	case lsFlags.sortBySize:
+		return "size", lsFlags.reverse
+	case lsFlags.sortByTime:
+		return "mtime", lsFlags.reverse
+	case lsFlags.sortByCtime:
+		return "ctime", lsFlags.reverse
+	case lsFlags.sortByAtime:
+		return "atime", lsFlags.reverse
 	default:
-		return "name", lsOpts.reverse
+		return "name", lsFlags.reverse
 	}
 }
 
@@ -131,10 +131,10 @@ func listPath(path string, sortSpec string, reverse bool) {
 
 		// Filter dot files
 		if strings.HasPrefix(name, ".") {
-			if !lsOpts.all && !lsOpts.almostAll {
+			if !lsFlags.all && !lsFlags.almostAll {
 				continue
 			}
-			if lsOpts.almostAll && (name == "." || name == "..") {
+			if lsFlags.almostAll && (name == "." || name == "..") {
 				continue
 			}
 		}
@@ -148,10 +148,10 @@ func listPath(path string, sortSpec string, reverse bool) {
 
 		// Apply directory filters
 		isDir := info.IsDir()
-		if lsOpts.directory && !isDir {
+		if lsFlags.directory && !isDir {
 			continue
 		}
-		if lsOpts.noDirectory && isDir {
+		if lsFlags.noDirectory && isDir {
 			continue
 		}
 
@@ -169,7 +169,7 @@ func listPath(path string, sortSpec string, reverse bool) {
 	sortEntries(entries, sortSpec, reverse)
 
 	// Add . and .. if -a (and not -A) and directory
-	if lsOpts.all && !lsOpts.almostAll && !lsOpts.directory && !lsOpts.noDirectory {
+	if lsFlags.all && !lsFlags.almostAll && !lsFlags.directory && !lsFlags.noDirectory {
 		// We need to get stats for . and .. as well
 		dotEntries := []string{".", ".."}
 		for _, dot := range dotEntries {
@@ -332,7 +332,7 @@ func printEntries(entries []fileEntry, basePath string) {
 		// Size (human or raw)
 		size := info.Size()
 		totalBlocks += blocks(info, stat)
-		sizeStr := formatSize(size, lsOpts.human, lsOpts.si)
+		sizeStr := formatSize(size, lsFlags.human, lsFlags.si)
 		if len(sizeStr) > widths.size {
 			widths.size = len(sizeStr)
 		}
@@ -366,7 +366,7 @@ func printEntries(entries []fileEntry, basePath string) {
 
 		// Get git status if not disabled
 		gitMarker := ""
-		if !lsOpts.noVCS {
+		if !lsFlags.noVCS {
 			gitMarker = gitStatus(fi.fullPath, fi.info.IsDir())
 		}
 
