@@ -26,16 +26,17 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func init() {
-	readmeCmd := MakeCmd("readme", runReadme)
-	rootCmd.AddCommand(readmeCmd)
+func ReadmeCmd() *cobra.Command {
+	d := horus.Must(domovoi.GlobalDocs())
+	cmd := horus.Must(d.MakeCmd("readme", runReadme))
+
+	return cmd
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: refactor as string declaration
 func runReadme(cmd *cobra.Command, args []string) {
-	cmdReadme := `
+	cmdStr := `
 zellij run --name readme \
 	--close-on-exit --floating \
 	--height 100 --width 130 --x 15 --y 0 \
@@ -50,8 +51,7 @@ zellij run --name readme \
 		)
 	[[ -n $file ]] && mdcat --paginate --columns=100 "$file"
 	'`
-	err := domovoi.ExecCmd("bash", "-c", cmdReadme)
-	horus.CheckErr(err)
+	horus.CheckErr(domovoi.ExecCmd("bash", "-c", cmdStr))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
