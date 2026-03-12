@@ -90,7 +90,7 @@ func generateDescribeMD(repoNames []string) string {
 		"Overview": AlignLeft,
 		"License":  AlignLeft,
 	}
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0, aligners, RootFlags.output)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, 0, aligners, rootFlags.output)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
