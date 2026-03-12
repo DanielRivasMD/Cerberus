@@ -133,7 +133,7 @@ func generateStatsMD(repoNames []string, year int) string {
 		"Repo":     AlignLeft,
 		"Language": AlignLeft,
 	}
-	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year, aligners, RootFlags.output)
+	return generateGenericMD(&sample, repoNames, populateFunc, fieldSizes, skip, year, aligners, rootFlags.output)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
