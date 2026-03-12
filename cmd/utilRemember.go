@@ -33,10 +33,10 @@ func generateRememberCSV(repoNames []string) error {
 	var outFile *os.File
 	var err error
 
-	if strings.TrimSpace(RootFlags.output) != "" {
-		outFile, err = os.Create(RootFlags.output)
+	if strings.TrimSpace(rootFlags.output) != "" {
+		outFile, err = os.Create(rootFlags.output)
 		if err != nil {
-			return horus.Wrap(err, "generateRememberCSV", "failed to create output file: "+RootFlags.output)
+			return horus.Wrap(err, "generateRememberCSV", "failed to create output file: "+rootFlags.output)
 		}
 		defer outFile.Close()
 	} else {
