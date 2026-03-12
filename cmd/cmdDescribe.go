@@ -19,22 +19,24 @@ package cmd
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import (
+	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
 	"github.com/spf13/cobra"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func init() {
-	describeCmd := MakeCmd("describe", runDescribe)
-	rootCmd.AddCommand(describeCmd)
+func DescribeCmd() *cobra.Command {
+	d := horus.Must(domovoi.GlobalDocs())
+	cmd := horus.Must(d.MakeCmd("describe", runDescribe))
+
+	return cmd
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func runDescribe(cmd *cobra.Command, args []string) {
-	err := handleGit("describe", RootFlags.verbose)
-	horus.CheckErr(err)
+	horus.CheckErr(handleGit("describe", rootFlags.verbose))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
