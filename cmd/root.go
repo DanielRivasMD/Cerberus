@@ -97,7 +97,6 @@ func BuildCommands() {
 
 		CloneCmd(),
 		DescribeCmd(),
-		LsCmd(),
 		ReadmeCmd(),
 		RememberCmd(),
 		RoadmapCmd(),
