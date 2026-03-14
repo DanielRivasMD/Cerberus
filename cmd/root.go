@@ -103,6 +103,7 @@ func BuildCommands() {
 		RoadmapCmd(),
 		StatsCmd(),
 		StatusCmd(),
+		SyncCmd(),
 	)
 }
 
