@@ -69,7 +69,7 @@ func runStatusMulti(specificRepo string, fetch bool, verbose bool) error {
 	return nil
 }
 
-// collectRepos (unchanged) – returns list of absolute repo paths
+// collectRepos returns list of absolute repo paths
 func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 	if specificRepo != "" {
 		abs, err := filepath.Abs(specificRepo)
@@ -119,7 +119,7 @@ func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 	return repos, nil
 }
 
-// getRepoStatus (modified to use fetch parameter)
+// getRepoStatus gathers status for a single repository.
 func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, error) {
 	stat := &repoStatus{
 		name: filepath.Base(repoPath),
@@ -144,7 +144,6 @@ func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, erro
 	// Fetch if requested
 	if fetch {
 		if _, err := runGit("fetch"); err != nil {
-			// Non‑fatal; we still try to get ahead/behind, but mark error
 			stat.err = horus.Wrap(err, "getRepoStatus", "fetch failed")
 		}
 	}
@@ -168,102 +167,146 @@ func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, erro
 	return stat, nil
 }
 
-// printStatusTable prints a formatted table with colors.
+// printStatusTable prints a formatted Markdown table with colors and proper alignment.
 func printStatusTable(statuses []*repoStatus) {
-	// Define column widths
-	widths := struct{ repo, clean, upstream, ahead, behind int }{}
-	for _, s := range statuses {
-		if l := runewidth.StringWidth(s.name); l > widths.repo {
-			widths.repo = l
-		}
-		cleanStr := "clean"
-		if !s.clean {
-			cleanStr = "unclean"
-		}
-		if l := runewidth.StringWidth(cleanStr); l > widths.clean {
-			widths.clean = l
-		}
-		if l := runewidth.StringWidth(s.upstream); l > widths.upstream {
-			widths.upstream = l
-		}
-		aheadStr := fmt.Sprintf("%d", s.ahead)
-		behindStr := fmt.Sprintf("%d", s.behind)
-		if l := runewidth.StringWidth(aheadStr); l > widths.ahead {
-			widths.ahead = l
-		}
-		if l := runewidth.StringWidth(behindStr); l > widths.behind {
-			widths.behind = l
+	// Column definitions: name, alignment (true=left)
+	cols := []struct {
+		name      string
+		alignLeft bool
+	}{
+		{"Repo", true},
+		{"Clean", true},
+		{"Upstream", true},
+		{"Ahead", false},
+		{"Behind", false},
+	}
+
+	// Precompute raw display strings for each row
+	type rowData struct {
+		repo     string
+		clean    string
+		upstream string
+		ahead    string
+		behind   string
+		err      error
+	}
+	rows := make([]rowData, len(statuses))
+	maxWidths := make([]int, len(cols))
+
+	updateMax := func(col int, s string) {
+		if w := runewidth.StringWidth(s); w > maxWidths[col] {
+			maxWidths[col] = w
 		}
 	}
 
-	// Ensure minimum widths for headers
-	if widths.repo < 4 {
-		widths.repo = 4
-	}
-	if widths.clean < 5 {
-		widths.clean = 5
-	}
-	if widths.upstream < 8 {
-		widths.upstream = 8
-	}
-	if widths.ahead < 5 {
-		widths.ahead = 5
-	}
-	if widths.behind < 6 {
-		widths.behind = 6
-	}
-
-	// Print header
-	fmt.Printf("%-*s  %-*s  %-*s  %*s  %*s\n",
-		widths.repo, "Repo",
-		widths.clean, "Clean",
-		widths.upstream, "Upstream",
-		widths.ahead, "Ahead",
-		widths.behind, "Behind")
-	fmt.Printf("%s  %s  %s  %s  %s\n",
-		strings.Repeat("-", widths.repo),
-		strings.Repeat("-", widths.clean),
-		strings.Repeat("-", widths.upstream),
-		strings.Repeat("-", widths.ahead),
-		strings.Repeat("-", widths.behind))
-
-	// Print rows
-	for _, s := range statuses {
+	for i, s := range statuses {
 		if s.err != nil {
-			fmt.Printf("%-*s  %s\n", widths.repo, s.name, chalk.Red.Color("error: "+s.err.Error()))
+			rows[i] = rowData{repo: s.name, err: s.err}
+			updateMax(0, s.name)
 			continue
 		}
 
-		// Clean column
 		cleanStr := "clean"
-		cleanColor := chalk.Green
 		if !s.clean {
 			cleanStr = "unclean"
-			cleanColor = chalk.Red
 		}
-
-		// Ahead/Behind columns
-		aheadStr := fmt.Sprintf("%d", s.ahead)
-		behindStr := fmt.Sprintf("%d", s.behind)
-		if s.ahead > 0 {
-			aheadStr = chalk.Yellow.Color(aheadStr)
-		}
-		if s.behind > 0 {
-			behindStr = chalk.Yellow.Color(behindStr)
-		}
-
-		// Upstream column
 		upstreamStr := s.upstream
-		if s.upstream == "—" {
-			upstreamStr = chalk.Dim.TextStyle("—")
+		if upstreamStr == "" {
+			upstreamStr = "—"
+		}
+		aheadStr := strconv.Itoa(s.ahead)
+		behindStr := strconv.Itoa(s.behind)
+
+		rows[i] = rowData{
+			repo:     s.name,
+			clean:    cleanStr,
+			upstream: upstreamStr,
+			ahead:    aheadStr,
+			behind:   behindStr,
 		}
 
-		fmt.Printf("%-*s  %-*s  %-*s  %*s  %*s\n",
-			widths.repo, s.name,
-			widths.clean, cleanColor.Color(cleanStr),
-			widths.upstream, upstreamStr,
-			widths.ahead, aheadStr,
-			widths.behind, behindStr)
+		updateMax(0, s.name)
+		updateMax(1, cleanStr)
+		updateMax(2, upstreamStr)
+		updateMax(3, aheadStr)
+		updateMax(4, behindStr)
+	}
+
+	// Ensure headers are at least as wide as their content
+	headers := []string{"Repo", "Clean", "Upstream", "Ahead", "Behind"}
+	for i, h := range headers {
+		if w := runewidth.StringWidth(h); w > maxWidths[i] {
+			maxWidths[i] = w
+		}
+	}
+
+	// Print header row (aligned same as data)
+	fmt.Print("|")
+	for i, h := range headers {
+		if cols[i].alignLeft {
+			fmt.Printf(" %s |", leftAligned(h, maxWidths[i]))
+		} else {
+			fmt.Printf(" %s |", rightAligned(h, maxWidths[i]))
+		}
+	}
+	fmt.Println()
+
+	// Print separator row (dashes aligned)
+	fmt.Print("|")
+	for i, w := range maxWidths {
+		dashes := strings.Repeat("-", w)
+		if cols[i].alignLeft {
+			fmt.Printf(" %s |", leftAligned(dashes, w))
+		} else {
+			fmt.Printf(" %s |", rightAligned(dashes, w))
+		}
+	}
+	fmt.Println()
+
+	// Print data rows
+	for _, r := range rows {
+		if r.err != nil {
+			fmt.Printf("%s: %s\n", r.repo, chalk.Red.Color("error: "+r.err.Error()))
+			continue
+		}
+
+		fmt.Print("|")
+
+		// Repo (left)
+		repoCell := leftAligned(r.repo, maxWidths[0])
+		fmt.Printf(" %s |", repoCell)
+
+		// Clean (left, color after padding)
+		cleanCell := leftAligned(r.clean, maxWidths[1])
+		if r.clean == "unclean" {
+			cleanCell = chalk.Red.Color(cleanCell)
+		} else {
+			cleanCell = chalk.Green.Color(cleanCell)
+		}
+		fmt.Printf(" %s |", cleanCell)
+
+		// Upstream (left, dim if no upstream)
+		upstreamCell := leftAligned(r.upstream, maxWidths[2])
+		if r.upstream == "—" {
+			upstreamCell = chalk.Dim.TextStyle(upstreamCell)
+		}
+		fmt.Printf(" %s |", upstreamCell)
+
+		// Ahead (right, yellow if >0)
+		aheadCell := rightAligned(r.ahead, maxWidths[3])
+		if a, _ := strconv.Atoi(r.ahead); a > 0 {
+			aheadCell = chalk.Yellow.Color(aheadCell)
+		}
+		fmt.Printf(" %s |", aheadCell)
+
+		// Behind (right, yellow if >0)
+		behindCell := rightAligned(r.behind, maxWidths[4])
+		if b, _ := strconv.Atoi(r.behind); b > 0 {
+			behindCell = chalk.Yellow.Color(behindCell)
+		}
+		fmt.Printf(" %s |", behindCell)
+
+		fmt.Println()
 	}
 }
 
