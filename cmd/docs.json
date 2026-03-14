@@ -116,6 +116,29 @@
     "valid_args": null,
     "disable_flags_in_use_line": false
   },
+  "sync": {
+    "use": "sync [flags]",
+    "short": "Push or pull changes in Git repositories (only if clean)",
+    "long": "For each Git repository, if it has no uncommitted changes, perform a git push or git pull on the current branch. Reports success, failure, or skip reason. Use --push or --pull (mutually exclusive).",
+    "example_usages": [
+      [
+        "sync",
+        "--pull"
+      ],
+      [
+        "sync",
+        "--push"
+      ],
+      [
+        "sync",
+        "--pull",
+        "--repo",
+        "/path/to/repo"
+      ]
+    ],
+    "valid_args": null,
+    "disable_flags_in_use_line": false
+  },
   "ls": {
     "use": "ls [flags] [path...]",
     "short": "List directory contents with rich formatting and Git integration",
