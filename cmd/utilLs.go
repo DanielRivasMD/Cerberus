@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"time"
 
 	"github.com/ttacon/chalk"
+	"golang.org/x/sys/unix"
 )
 
 // ----------------------------------------------------------------------
@@ -93,7 +93,7 @@ type fileEntry struct {
 	name     string
 	fullPath string
 	info     os.FileInfo
-	stat     *syscall.Stat_t // for detailed metadata
+	stat     *unix.Stat_t // use unix.Stat_t for cross-platform compatibility
 	err      error
 }
 
@@ -155,14 +155,24 @@ func listPath(path string, sortSpec string, reverse bool) {
 			continue
 		}
 
-		// Collect metadata
-		stat := statFromFileInfo(info)
-		entries = append(entries, fileEntry{
-			name:     name,
-			fullPath: fullPath,
-			info:     info,
-			stat:     stat,
-		})
+		// Collect metadata using unix.Stat (gives us unix.Stat_t directly)
+		var stat unix.Stat_t
+		if err := unix.Stat(fullPath, &stat); err != nil {
+			// If stat fails, we can still proceed with partial info
+			entries = append(entries, fileEntry{
+				name:     name,
+				fullPath: fullPath,
+				info:     info,
+				stat:     nil,
+			})
+		} else {
+			entries = append(entries, fileEntry{
+				name:     name,
+				fullPath: fullPath,
+				info:     info,
+				stat:     &stat,
+			})
+		}
 	}
 
 	// Sort entries
@@ -170,7 +180,6 @@ func listPath(path string, sortSpec string, reverse bool) {
 
 	// Add . and .. if -a (and not -A) and directory
 	if lsFlags.all && !lsFlags.almostAll && !lsFlags.directory && !lsFlags.noDirectory {
-		// We need to get stats for . and .. as well
 		dotEntries := []string{".", ".."}
 		for _, dot := range dotEntries {
 			fullPath := filepath.Join(path, dot)
@@ -178,13 +187,17 @@ func listPath(path string, sortSpec string, reverse bool) {
 			if err != nil {
 				continue
 			}
-			stat := statFromFileInfo(info)
+			var stat unix.Stat_t
+			var statPtr *unix.Stat_t
+			if err := unix.Stat(fullPath, &stat); err == nil {
+				statPtr = &stat
+			}
 			// Insert at beginning, unsorted
 			entries = append([]fileEntry{{
 				name:     dot,
 				fullPath: fullPath,
 				info:     info,
-				stat:     stat,
+				stat:     statPtr,
 			}}, entries...)
 		}
 	}
@@ -193,10 +206,27 @@ func listPath(path string, sortSpec string, reverse bool) {
 	printEntries(entries, path)
 }
 
-// statFromFileInfo attempts to get syscall.Stat_t from FileInfo.
-func statFromFileInfo(info os.FileInfo) *syscall.Stat_t {
+// statFromFileInfo attempts to get unix.Stat_t from FileInfo.
+// It uses the Sys() interface, which on Unix returns *syscall.Stat_t.
+// We then copy the relevant fields into a unix.Stat_t.
+func statFromFileInfo(info os.FileInfo) *unix.Stat_t {
 	if sys, ok := info.Sys().(*syscall.Stat_t); ok {
-		return sys
+		// Convert syscall.Stat_t to unix.Stat_t by copying fields.
+		// This is platform-dependent but safe because the underlying structs are compatible.
+		var u unix.Stat_t
+		u.Dev = uint64(sys.Dev)
+		u.Ino = uint64(sys.Ino)
+		u.Nlink = uint64(sys.Nlink)
+		u.Mode = uint32(sys.Mode)
+		u.Uid = uint32(sys.Uid)
+		u.Gid = uint32(sys.Gid)
+		u.Size = sys.Size
+		u.Blksize = int64(sys.Blksize)
+		u.Blocks = sys.Blocks
+		u.Atim = unix.Timespec{Sec: sys.Atim.Sec, Nsec: sys.Atim.Nsec}
+		u.Mtim = unix.Timespec{Sec: sys.Mtim.Sec, Nsec: sys.Mtim.Nsec}
+		u.Ctim = unix.Timespec{Sec: sys.Ctim.Sec, Nsec: sys.Ctim.Nsec}
+		return &u
 	}
 	return nil
 }
@@ -238,42 +268,25 @@ func sortEntries(entries []fileEntry, sortSpec string, reverse bool) {
 	sort.Slice(entries, less)
 }
 
-func atime(stat *syscall.Stat_t) time.Time {
+// atime and ctime now use unix.Stat_t, which has consistent fields on all platforms.
+func atime(stat *unix.Stat_t) time.Time {
 	if stat == nil {
 		return time.Time{}
 	}
-	switch runtime.GOOS {
-	case "darwin":
-		// macOS uses Atimespec and Ctimespec
-		return time.Unix(stat.Atimespec.Sec, stat.Atimespec.Nsec)
-	// case "linux", "freebsd", "netbsd", "openbsd", "dragonfly":
-	// Linux and most BSDs use Atim and Ctim
-	// return time.Unix(stat.Atim.Sec, stat.Atim.Nsec)
-	default:
-		// Unsupported platform – return zero time (sorting by atime will be stable but meaningless)
-		return time.Time{}
-	}
+	return time.Unix(stat.Atim.Sec, stat.Atim.Nsec)
 }
 
-func ctime(stat *syscall.Stat_t) time.Time {
+func ctime(stat *unix.Stat_t) time.Time {
 	if stat == nil {
 		return time.Time{}
 	}
-	switch runtime.GOOS {
-	case "darwin":
-		return time.Unix(stat.Ctimespec.Sec, stat.Ctimespec.Nsec)
-	// case "linux", "freebsd", "netbsd", "openbsd", "dragonfly":
-	// return time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
-	default:
-		return time.Time{}
-	}
+	return time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
 }
 
 // ----------------------------------------------------------------------
 // Output formatting
 // ----------------------------------------------------------------------
 
-// Column widths
 type colWidths struct {
 	mode  int
 	nlink int
@@ -410,12 +423,12 @@ type fileInfoDisplay struct {
 	size     int64
 	sizeStr  string
 	mtime    time.Time
-	stat     *syscall.Stat_t
+	stat     *unix.Stat_t
 	info     os.FileInfo
 }
 
 // blocks returns the number of 512-byte blocks used by the file (like ls).
-func blocks(info os.FileInfo, stat *syscall.Stat_t) int64 {
+func blocks(info os.FileInfo, stat *unix.Stat_t) int64 {
 	if stat != nil {
 		// stat.Blocks is in 512-byte units
 		return int64(stat.Blocks)
@@ -425,7 +438,7 @@ func blocks(info os.FileInfo, stat *syscall.Stat_t) int64 {
 }
 
 // username returns the user name from uid, or the uid as string.
-func username(stat *syscall.Stat_t) string {
+func username(stat *unix.Stat_t) string {
 	if stat == nil {
 		return "?"
 	}
@@ -437,7 +450,7 @@ func username(stat *syscall.Stat_t) string {
 }
 
 // groupname returns the group name from gid, or the gid as string.
-func groupname(stat *syscall.Stat_t) string {
+func groupname(stat *unix.Stat_t) string {
 	if stat == nil {
 		return "?"
 	}
@@ -552,7 +565,8 @@ func gitStatus(path string, isDir bool) string {
 		case "M ": // modified, staged
 			return chalk.Green.Color("+")
 		case "??": // untracked
-			return chalk.Color(chalk.Yellow).Color("+") // approximate orange
+			// chalk.Yellow is used as an approximation for orange
+			return chalk.Yellow.Color("+")
 		case "!!": // ignored
 			return chalk.Dim.TextStyle("|")
 		default:
