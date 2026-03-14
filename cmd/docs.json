@@ -95,6 +95,27 @@
       ]
     ]
   },
+  "status": {
+    "use": "status [flags]",
+    "short": "Show status of multiple Git repositories",
+    "long": "Check the status of one or more Git repositories. Reports whether each repo is clean (no uncommitted changes) and how many commits ahead/behind its upstream branch. Optionally fetches from remote before checking.",
+    "example_usages": [
+      [
+        "status"
+      ],
+      [
+        "status",
+        "--fetch"
+      ],
+      [
+        "status",
+        "--repo",
+        "/path/to/repo"
+      ]
+    ],
+    "valid_args": null,
+    "disable_flags_in_use_line": false
+  },
   "ls": {
     "use": "ls [flags] [path...]",
     "short": "List directory contents with rich formatting and Git integration",
