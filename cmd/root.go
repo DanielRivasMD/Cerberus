@@ -102,6 +102,7 @@ func BuildCommands() {
 		RememberCmd(),
 		RoadmapCmd(),
 		StatsCmd(),
+		StatusCmd(),
 	)
 }
 
