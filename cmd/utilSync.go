@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/DanielRivasMD/domovoi"
@@ -35,7 +36,7 @@ type syncResult struct {
 	name    string
 	action  string // "push" or "pull"
 	success bool
-	message string // short message like "Already up to date", "Pushed 3 commits", etc.
+	message string // e.g., "Pushed 3 commits", "Already up to date"
 	err     error
 }
 
@@ -70,6 +71,33 @@ func runSyncMulti(specificRepo string, push, pull, verbose bool) error {
 	return nil
 }
 
+// getAheadBehind returns (ahead, behind) counts for the current branch.
+func getAheadBehind(repoPath string) (int, int, error) {
+	runGit := func(args ...string) (string, error) {
+		cmd := append([]string{"-C", repoPath}, args...)
+		out, _, err := domovoi.CaptureExecCmd("git", cmd...)
+		return strings.TrimSpace(out), err
+	}
+
+	// Check if upstream exists
+	upstream, err := runGit("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+	if err != nil || upstream == "" {
+		return 0, 0, nil // no upstream -> ahead/behind are zero
+	}
+
+	out, err := runGit("rev-list", "--count", "--left-right", "@{upstream}...HEAD")
+	if err != nil {
+		return 0, 0, err
+	}
+	parts := strings.Fields(out)
+	if len(parts) != 2 {
+		return 0, 0, nil
+	}
+	behind, _ := strconv.Atoi(parts[0])
+	ahead, _ := strconv.Atoi(parts[1])
+	return ahead, behind, nil
+}
+
 // syncRepository performs push or pull on a single repository.
 func syncRepository(repoPath string, push, pull, verbose bool) (*syncResult, error) {
 	name := filepath.Base(repoPath)
@@ -96,11 +124,17 @@ func syncRepository(repoPath string, push, pull, verbose bool) (*syncResult, err
 		return res, nil
 	}
 
+	// Get ahead/behind before sync
+	ahead, behind, err := getAheadBehind(repoPath)
+	if err != nil {
+		// Non‑fatal; continue but message may be less precise
+		ahead, behind = 0, 0
+	}
+
 	if pull {
 		// git pull
 		stdout, stderr, err := runGit("pull")
 		if err != nil {
-			// Pull failed (divergent, no upstream, etc.)
 			res.success = false
 			if strings.Contains(stderr, "divergent") {
 				res.message = "Divergent branches"
@@ -116,11 +150,13 @@ func syncRepository(repoPath string, push, pull, verbose bool) (*syncResult, err
 			}
 			return res, nil
 		}
-		// Success
 		res.success = true
 		if strings.Contains(stdout, "Already up to date") {
 			res.message = "Already up to date"
+		} else if behind > 0 {
+			res.message = fmt.Sprintf("Pulled %d commits", behind)
 		} else {
+			// Fallback to first line of stdout
 			lines := strings.Split(stdout, "\n")
 			if len(lines) > 0 {
 				res.message = lines[0]
@@ -150,7 +186,10 @@ func syncRepository(repoPath string, push, pull, verbose bool) (*syncResult, err
 		res.success = true
 		if strings.Contains(stdout, "Everything up-to-date") {
 			res.message = "Everything up-to-date"
+		} else if ahead > 0 {
+			res.message = fmt.Sprintf("Pushed %d commits", ahead)
 		} else {
+			// Fallback to first line of stdout
 			lines := strings.Split(stdout, "\n")
 			if len(lines) > 0 {
 				res.message = lines[0]
@@ -199,14 +238,11 @@ func printSyncTable(results []*syncResult) {
 			continue
 		}
 
-		// Action
 		action := r.action
-		// Result
 		resultStr := "success"
 		if !r.success {
 			resultStr = "failed"
 		}
-		// Message
 		msg := r.message
 		if msg == "" {
 			msg = "—"
@@ -282,6 +318,8 @@ func printSyncTable(results []*syncResult) {
 		msgCell := leftAligned(r.message, maxWidths[3])
 		if strings.Contains(r.message, "uncommitted") || strings.Contains(r.message, "divergent") {
 			msgCell = chalk.Yellow.Color(msgCell)
+		} else if strings.Contains(r.message, "Pushed") || strings.Contains(r.message, "Pulled") {
+			msgCell = chalk.Green.Color(msgCell)
 		}
 		fmt.Printf(" %s |", msgCell)
 
