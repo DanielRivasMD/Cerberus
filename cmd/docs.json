@@ -138,40 +138,5 @@
     ],
     "valid_args": null,
     "disable_flags_in_use_line": false
-  },
-  "ls": {
-    "use": "ls [flags] [path...]",
-    "short": "List directory contents with rich formatting and Git integration",
-    "long": "List information about files and directories.\n\nThis command replicates the functionality of the popular `k` Zsh function, providing detailed file listings with colors, human-readable sizes, sorting options, and Git status markers. If no path is given, the current directory is used.\n\nSupported flags allow you to control which files are shown, how they are sorted, and how metadata is displayed. Git integration shows markers for modified, staged, untracked, and ignored files (use --no-vcs to disable).",
-    "example_usages": [
-      [
-        "ls"
-      ],
-      [
-        "ls",
-        "-la"
-      ],
-      [
-        "ls",
-        "--human",
-        "--size",
-        "--reverse",
-        "/usr"
-      ],
-      [
-        "ls",
-        "--directory",
-        "*.go"
-      ],
-      [
-        "ls",
-        "--no-vcs",
-        "--sort",
-        "time",
-        "~/projects"
-      ]
-    ],
-    "valid_args": null,
-    "disable_flags_in_use_line": false
   }
 }
