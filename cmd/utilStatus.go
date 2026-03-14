@@ -27,6 +27,7 @@ import (
 
 	"github.com/DanielRivasMD/domovoi"
 	"github.com/DanielRivasMD/horus"
+	"github.com/mattn/go-runewidth"
 	"github.com/ttacon/chalk"
 )
 
@@ -46,7 +47,6 @@ type repoStatus struct {
 
 // runStatusMulti is the main entry point for the status command.
 func runStatusMulti(specificRepo string, fetch bool, verbose bool) error {
-	// Determine list of repositories to check
 	repos, err := collectRepos(specificRepo, verbose)
 	if err != nil {
 		return err
@@ -56,26 +56,20 @@ func runStatusMulti(specificRepo string, fetch bool, verbose bool) error {
 		return nil
 	}
 
-	// Collect status for each repo
 	statuses := make([]*repoStatus, 0, len(repos))
 	for _, r := range repos {
 		stat, err := getRepoStatus(r, fetch, verbose)
 		if err != nil {
-			// If error, still include with error field
 			stat = &repoStatus{name: filepath.Base(r), path: r, err: err}
 		}
 		statuses = append(statuses, stat)
 	}
 
-	// Print results
-	printStatuses(statuses)
+	printStatusTable(statuses)
 	return nil
 }
 
-// collectRepos returns a list of absolute paths to Git repositories.
-// If specificRepo is given, it checks that path.
-// Otherwise, if current directory is a Git repo, returns that.
-// Otherwise, scans immediate subdirectories for .git.
+// collectRepos (unchanged) – returns list of absolute repo paths
 func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 	if specificRepo != "" {
 		abs, err := filepath.Abs(specificRepo)
@@ -92,7 +86,6 @@ func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 		return []string{abs}, nil
 	}
 
-	// Check current directory
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, horus.Wrap(err, "collectRepos", "failed to get current directory")
@@ -105,7 +98,6 @@ func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 		return []string{cwd}, nil
 	}
 
-	// Scan subdirectories
 	entries, err := os.ReadDir(cwd)
 	if err != nil {
 		return nil, horus.Wrap(err, "collectRepos", "failed to read current directory")
@@ -118,7 +110,7 @@ func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 		path := filepath.Join(cwd, e.Name())
 		ok, err := domovoi.DirExist(filepath.Join(path, ".git"), horus.NullAction(false), verbose)
 		if err != nil {
-			continue // skip problematic entries
+			continue
 		}
 		if ok {
 			repos = append(repos, path)
@@ -127,14 +119,13 @@ func collectRepos(specificRepo string, verbose bool) ([]string, error) {
 	return repos, nil
 }
 
-// getRepoStatus gathers status information for a single repository.
+// getRepoStatus (modified to use fetch parameter)
 func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, error) {
 	stat := &repoStatus{
 		name: filepath.Base(repoPath),
 		path: repoPath,
 	}
 
-	// Helper to run git commands inside repo
 	runGit := func(args ...string) (string, error) {
 		cmd := append([]string{"-C", repoPath}, args...)
 		out, _, err := domovoi.CaptureExecCmd("git", cmd...)
@@ -144,14 +135,13 @@ func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, erro
 		return strings.TrimSpace(string(out)), nil
 	}
 
-	// Check if clean (no unstaged changes)
 	porcelain, err := runGit("status", "--porcelain")
 	if err != nil {
 		return stat, horus.Wrap(err, "getRepoStatus", "git status failed")
 	}
 	stat.clean = (porcelain == "")
 
-	// Optionally fetch
+	// Fetch if requested
 	if fetch {
 		if _, err := runGit("fetch"); err != nil {
 			// Non‑fatal; we still try to get ahead/behind, but mark error
@@ -159,68 +149,121 @@ func getRepoStatus(repoPath string, fetch bool, verbose bool) (*repoStatus, erro
 		}
 	}
 
-	// Get upstream branch (if any)
 	upstream, err := runGit("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
 	if err != nil || upstream == "" {
-		// No upstream configured
-		stat.upstream = "no upstream"
+		stat.upstream = "—"
 		return stat, nil
 	}
 	stat.upstream = upstream
 
-	// Get ahead/behind counts
-	// Format: "ahead X, behind Y" from `git rev-list --count --left-right @{upstream}...HEAD`
 	out, err := runGit("rev-list", "--count", "--left-right", "@{upstream}...HEAD")
 	if err != nil {
-		// Could be that upstream doesn't exist yet (new branch)
 		return stat, nil
 	}
 	parts := strings.Fields(out)
 	if len(parts) == 2 {
-		stat.behind, _ = strconv.Atoi(parts[0]) // left side: commits behind (on upstream not in local)
-		stat.ahead, _ = strconv.Atoi(parts[1])  // right side: commits ahead
+		stat.behind, _ = strconv.Atoi(parts[0])
+		stat.ahead, _ = strconv.Atoi(parts[1])
 	}
 	return stat, nil
 }
 
-// printStatuses outputs the collected status information with colors.
-func printStatuses(statuses []*repoStatus) {
+// printStatusTable prints a formatted table with colors.
+func printStatusTable(statuses []*repoStatus) {
+	// Define column widths
+	widths := struct{ repo, clean, upstream, ahead, behind int }{}
 	for _, s := range statuses {
-		line := s.name + ": "
+		if l := runewidth.StringWidth(s.name); l > widths.repo {
+			widths.repo = l
+		}
+		cleanStr := "clean"
+		if !s.clean {
+			cleanStr = "unclean"
+		}
+		if l := runewidth.StringWidth(cleanStr); l > widths.clean {
+			widths.clean = l
+		}
+		if l := runewidth.StringWidth(s.upstream); l > widths.upstream {
+			widths.upstream = l
+		}
+		aheadStr := fmt.Sprintf("%d", s.ahead)
+		behindStr := fmt.Sprintf("%d", s.behind)
+		if l := runewidth.StringWidth(aheadStr); l > widths.ahead {
+			widths.ahead = l
+		}
+		if l := runewidth.StringWidth(behindStr); l > widths.behind {
+			widths.behind = l
+		}
+	}
 
+	// Ensure minimum widths for headers
+	if widths.repo < 4 {
+		widths.repo = 4
+	}
+	if widths.clean < 5 {
+		widths.clean = 5
+	}
+	if widths.upstream < 8 {
+		widths.upstream = 8
+	}
+	if widths.ahead < 5 {
+		widths.ahead = 5
+	}
+	if widths.behind < 6 {
+		widths.behind = 6
+	}
+
+	// Print header
+	fmt.Printf("%-*s  %-*s  %-*s  %*s  %*s\n",
+		widths.repo, "Repo",
+		widths.clean, "Clean",
+		widths.upstream, "Upstream",
+		widths.ahead, "Ahead",
+		widths.behind, "Behind")
+	fmt.Printf("%s  %s  %s  %s  %s\n",
+		strings.Repeat("-", widths.repo),
+		strings.Repeat("-", widths.clean),
+		strings.Repeat("-", widths.upstream),
+		strings.Repeat("-", widths.ahead),
+		strings.Repeat("-", widths.behind))
+
+	// Print rows
+	for _, s := range statuses {
 		if s.err != nil {
-			line += chalk.Red.Color("error: " + s.err.Error())
-			fmt.Println(line)
+			fmt.Printf("%-*s  %s\n", widths.repo, s.name, chalk.Red.Color("error: "+s.err.Error()))
 			continue
 		}
 
-		// Cleanliness
-		if s.clean {
-			line += chalk.Green.Color("clean")
-		} else {
-			line += chalk.Red.Color("unclean")
+		// Clean column
+		cleanStr := "clean"
+		cleanColor := chalk.Green
+		if !s.clean {
+			cleanStr = "unclean"
+			cleanColor = chalk.Red
 		}
 
-		// Upstream info
-		if s.upstream == "" {
-			line += chalk.Yellow.Color(" (no upstream)")
-		} else if s.upstream == "no upstream" {
-			line += chalk.Yellow.Color(" (no upstream)")
-		} else {
-			line += fmt.Sprintf(" (%s", s.upstream)
-			if s.ahead == 0 && s.behind == 0 {
-				line += chalk.Green.Color(", up-to-date")
-			} else {
-				if s.ahead > 0 {
-					line += fmt.Sprintf(", ahead %d", s.ahead)
-				}
-				if s.behind > 0 {
-					line += fmt.Sprintf(", behind %d", s.behind)
-				}
-			}
-			line += ")"
+		// Ahead/Behind columns
+		aheadStr := fmt.Sprintf("%d", s.ahead)
+		behindStr := fmt.Sprintf("%d", s.behind)
+		if s.ahead > 0 {
+			aheadStr = chalk.Yellow.Color(aheadStr)
 		}
-		fmt.Println(line)
+		if s.behind > 0 {
+			behindStr = chalk.Yellow.Color(behindStr)
+		}
+
+		// Upstream column
+		upstreamStr := s.upstream
+		if s.upstream == "—" {
+			upstreamStr = chalk.Dim.TextStyle("—")
+		}
+
+		fmt.Printf("%-*s  %-*s  %-*s  %*s  %*s\n",
+			widths.repo, s.name,
+			widths.clean, cleanColor.Color(cleanStr),
+			widths.upstream, upstreamStr,
+			widths.ahead, aheadStr,
+			widths.behind, behindStr)
 	}
 }
 
