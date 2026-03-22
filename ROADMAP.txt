@@ -4,15 +4,14 @@ consider tui for version 2.0
 
 commands are at MVP stage!
 prepare release
-thinks about working commands & command hierarchy
+think / reorganize working commands & command hierarchy
 
 - add simple unicode graphics
-- add wrapper or analoge of `k` shell plugin
-- add git actions to replace gfold
+- add wrapper or analoge of `k` shell plugin => DONE
+- add git actions to replace gfold => DONE
+- update table / report rendering
 
 ==================================================
-cmd/cmdLs.go
-  line 29     TODO   rework logic & functionality. at the moment, this command is a draft
 cmd/cmdStats.go
   line 54     TODO   repository is declared here globally and used within functions by leaking. the intend implementation is to use it as a flag struct, probably pass a generic struct to the function handleGit
 ==================================================
