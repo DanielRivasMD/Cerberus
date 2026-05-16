@@ -4,6 +4,7 @@ consider tui for version 2.0
 
 commands are at MVP stage!
 prepare release
+parallelization
 think / reorganize working commands & command hierarchy
 
 - add simple unicode graphics
@@ -41,6 +42,4 @@ enhancements
 - separate remember output flag
 
 ==================================================
-cmd/cmdStats.go
-  line 52     TODO   repository is declared here globally and used within functions by leaking. the intend implementation is to use it as a flag struct, probably pass a generic struct to the function handleGit
 ==================================================
