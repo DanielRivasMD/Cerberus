@@ -18,10 +18,12 @@ Cerberus is primarily known for his capture by Heracles, the last of Heracles' t
 
 #[derive(Parser)]
 #[command(
-    name = "cerberus",
-    version = "0.1.0",
-    about = "Guardian of the code",
-    long_about = None
+    name = env!("CARGO_PKG_NAME"),
+    version = env!("CARGO_PKG_VERSION"),
+    author = env!("CARGO_PKG_AUTHORS"),
+    about = env!("CARGO_PKG_DESCRIPTION"),
+    before_help = concat!(env!("CARGO_PKG_AUTHORS"), "\n", env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")),
+    // long_about = HELP,
 )]
 pub struct Cli {
     #[command(subcommand)]
