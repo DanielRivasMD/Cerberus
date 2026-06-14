@@ -6,6 +6,8 @@ commands are at MVP stage!
 prepare release
 parallelization
 think / reorganize working commands & command hierarchy
+rename commands
+use recursive reading on children repos => workspace-rs/repo
 
 - add simple unicode graphics
 - add wrapper or analoge of `k` shell plugin => DONE
