@@ -1,18 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 use chrono::Datelike;
-use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand, ValueHint};
-use clap_complete::Shell;
+use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub const IDENT: &str = r#"In Greek mythology, Cerberus, Κέρβερος, often referred to as the hound of Hades, is a multi-headed dog
-that guards the gates of the underworld to prevent the dead from leaving.
-
-He was the offspring of the monsters Echidna and Typhon, and was usually described as having three heads,
-a serpent for a tail, and snakes protruding from his body.
-
-Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours"#;
+const HELP: &str = r"Blank slate deployment";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,11 +16,11 @@ Cerberus is primarily known for his capture by Heracles, the last of Heracles' t
     author = env!("CARGO_PKG_AUTHORS"),
     about = env!("CARGO_PKG_DESCRIPTION"),
     before_help = concat!(env!("CARGO_PKG_AUTHORS"), "\n", env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")),
-    // long_about = HELP,
+    long_about = HELP,
 )]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Command,
 
     /// Enable verbose diagnostics
     #[arg(global = true, short = 'v', long)]
@@ -37,129 +30,119 @@ pub struct Cli {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Subcommand)]
-pub enum Commands {
-    /// Generate shell completions
-    Completion(CompletionArgs),
+pub enum Command {
+    /// Explore repos
+    Explore {
+        #[command(subcommand)]
+        sub: ExploreSub,
+    },
 
-    /// Print the identity of Cerberus
-    #[command(alias = "id")]
+    /// Manage repos
+    Manage {
+        #[command(subcommand)]
+        sub: ManageSub,
+    },
+
+    /// Print identity
+    #[command(hide = true)]
+    #[command(aliases = &["id"])]
     Identity,
 
-    /// Clone all repos from a CSV file
-    Clone(CloneArgs),
+    /// Generate shell completions
+    #[command(hide = true)]
+    Completion {
+        /// Shell for which to generate completions
+        #[arg(value_enum)]
+        shell: Shell,
+    },
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Subcommand)]
+pub enum ExploreSub {
     /// Explore repo descriptions
     Describe,
 
     /// Browse through README files
     Readme,
 
-    /// Recall repos as CSV
-    Remember(RememberArgs),
-
     /// Browse through roadmaps
     Roadmap,
 
     /// Report repos stats
-    Stats(StatsArgs),
+    Stats {
+        /// Repository path (default: current directory)
+        #[arg(short, long, default_value = ".")]
+        repo: String,
+
+        /// Year for commit frequency calculation
+        #[arg(short, long, default_value_t = chrono::Utc::now().year())]
+        year: i32,
+        /// Time aggregation (not yet implemented)
+        #[arg(short, long, default_value = "yearly")]
+        time: String,
+
+        /// Write output to CSV file instead of Markdown table
+        #[arg(long, value_hint = ValueHint::FilePath)]
+        output: Option<String>,
+    },
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Subcommand)]
+pub enum ManageSub {
+    /// Clone all repos from a CSV file
+    Clone {
+        /// File in csv format containing remote repositories
+        #[arg(long, value_hint = ValueHint::FilePath)]
+        csv: String,
+
+        /// Directory to clone repositories into
+        #[arg(long, value_hint = ValueHint::DirPath)]
+        directory: Option<String>,
+    },
+
+    Pull {
+        /// Specific repository path (default: scan subdirectories)
+        #[arg(short, long)]
+        repo: Option<String>,
+    },
+
+    Push {
+        /// Specific repository path (default: scan subdirectories)
+        #[arg(short, long)]
+        repo: Option<String>,
+    },
+
+    /// Recall repos as CSV
+    Remember {
+        /// File in csv format containing remote repositories
+        #[arg(long, value_hint = ValueHint::FilePath)]
+        csv: Option<String>,
+    },
 
     /// Show status of multiple Git repositories
-    Status(StatusArgs),
+    Status {
+        /// Specific repository path (default: scan subdirectories)
+        #[arg(short, long)]
+        repo: Option<String>,
 
-    /// Push or pull changes in Git repositories (only if clean)
-    Sync(SyncArgs),
+        /// Run git fetch before checking upstream
+        #[arg(short, long, default_value_t = false)]
+        fetch: bool,
+    },
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Args)]
-pub struct CompletionArgs {
-    #[arg(value_enum)]
-    pub shell: Shell,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Args)]
-pub struct CloneArgs {
-    /// File in csv format containing remote repositories
-    #[arg(long, value_hint = ValueHint::FilePath)]
-    pub csv: String,
-
-    /// Directory to clone repositories into
-    #[arg(long, value_hint = ValueHint::DirPath)]
-    pub directory: Option<String>,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Args)]
-pub struct RememberArgs {
-    /// Output file (stdout if omitted)
-    #[arg(long = "output", short = 'o', value_hint = ValueHint::FilePath)]
-    pub output: Option<String>,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Args)]
-pub struct StatsArgs {
-    /// Repository path (default: current directory)
-    #[arg(short, long, default_value = ".")]
-    pub repo: String,
-
-    /// Year for commit frequency calculation
-    #[arg(short, long, default_value_t = chrono::Utc::now().year())]
-    pub year: i32,
-
-    /// Time aggregation (not yet implemented)
-    #[arg(short, long, default_value = "yearly")]
-    pub time: String,
-
-    /// Render as graph (not yet implemented)
-    #[arg(short, long, default_value_t = true)]
-    pub plot: bool,
-
-    /// Write output to CSV file instead of Markdown table
-    #[arg(long, value_hint = ValueHint::FilePath)]
-    pub output: Option<String>,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Args)]
-pub struct StatusArgs {
-    /// Specific repository path (default: scan subdirectories)
-    #[arg(short, long)]
-    pub repo: Option<String>,
-
-    /// Run git fetch before checking upstream
-    #[arg(short, long, default_value_t = false)]
-    pub fetch: bool,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Args)]
-#[group(required = true, multiple = false)]
-pub struct SyncArgs {
-    /// Specific repository path (default: scan subdirectories)
-    #[arg(short, long)]
-    pub repo: Option<String>,
-
-    /// Push commits to remote
-    #[arg(long)]
-    pub push: bool,
-
-    /// Pull commits from remote
-    #[arg(long)]
-    pub pull: bool,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn build() -> clap::Command {
-    Cli::command()
+#[derive(Clone, Copy, ValueEnum)]
+pub enum Shell {
+    Bash,
+    Zsh,
+    Fish,
+    Powershell,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
