@@ -497,6 +497,16 @@ pub struct RepoStatus {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Run a full status report: collect repos, optionally fetch, and print the table
+pub fn status_report(repo: Option<String>, fetch: bool, verbose: bool) -> Result<()> {
+    let repos = collect_repos(repo, verbose)?;
+    let statuses = get_statuses(&repos, fetch)?;
+    print_status_table(&statuses);
+    Ok(())
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
     let mut results = Vec::new();
     for repo in repos {
