@@ -1,47 +1,42 @@
-consider tui for version 2.0
+MVP stage! => * focus points for v1.0
 
 
-
-commands are at MVP stage!
-prepare release
-parallelization
-think / reorganize working commands & command hierarchy
-rename commands
-use recursive reading on children repos => workspace-rs/repo
-
-- add simple unicode graphics
-- add wrapper or analoge of `k` shell plugin => DONE
-- add git actions to replace gfold => DONE
-- update table / report rendering
 
 strengths
 - multirepo management via clean CLI
 - rich Markdown output with color & proper alignment
 - generics-based reusable table generation
 - leverage established tools
-- commands like status / sync handle both single-repo & recursive directory scanning
+- commands handle both single-repo & recursive directory scanning
 
 weaknesses
-- heavy reliance on external binaries
-- global command flags across unrelated commands
-- inconsistent repo discovery
-- error handling is fragile
-- stats command promises quarterly aggregation but only computes yearly
-- sequential processing of repos makes large scans slow; no parallelism
-- describe does not include the remote URL
-- remember command writes CSV directly to stdout or a file, but the flag is global
+* update table / report rendering
+* sequential processing of repos makes large scans slow
+* describe does not include the remote URL
+* stats => bug on type casting
+- stats command promises quarterly aggregation but only computes yearly => --time flag unused
 
 usefulness
 - useful for developers managing handfuls of local Git clones who need quick overviews, batch operations & lightweight repo stats
 
 enhancements
-- eliminate global flag variables
-- unify repository discovery
-- remove panics from utility code; return errors
-- add dry-run mode to sync and clone
+* parallelization
+* use recursive reading on children repos
+* add dry-run mode
+- add simple unicode graphics
 - implement quarterly / aggregation logic
-- introduce parallel processing
-- separate remember output flag
+- consider tui for version 2.0
+
+
 
 ==================================================
+src/cli.rs
+  line 8      TODO   add examples in help
+src/cmd/explore.rs
+  line 30     TODO   describe does not use remote URL
+  line 101    TODO   bugged type casting
+  line 102    TODO   command aggregation on quatterly
+src/cmd/manage.rs
+  line 13     TODO   introduce parallel exectution
+  line 14     TODO   reporting not printing the repo name
 ==================================================

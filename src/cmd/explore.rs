@@ -27,6 +27,7 @@ pub fn run(sub: cli::ExploreSub, verbose: bool) -> anyResult<()> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: describe does not use remote URL
 mod describe {
     pub fn run(verbose: bool) -> super::anyResult<()> {
         let repos = super::util::collect_repos(None, verbose)?;
@@ -97,6 +98,8 @@ zellij run --name roadmap \
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: bugged type casting
+// TODO: command aggregation on quatterly
 mod stats {
     pub fn run(
         repo: String,

@@ -10,6 +10,8 @@ use crate::util;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: introduce parallel exectution
+// TODO: reporting not printing the repo name
 pub fn run(sub: cli::ManageSub, verbose: bool) -> anyResult<()> {
     match sub {
         cli::ManageSub::Clone { csv, directory } => clone::run(csv, directory, verbose)?,
