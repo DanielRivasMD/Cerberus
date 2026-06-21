@@ -13,10 +13,11 @@ use crate::util;
 pub fn run(sub: cli::ManageSub, verbose: bool) -> anyResult<()> {
     match sub {
         cli::ManageSub::Clone { csv, directory } => clone::run(csv, directory, verbose)?,
-        cli::ManageSub::Remember { csv } => remember::run(csv, verbose)?,
+        cli::ManageSub::Fetch { repo } => fetch::run(repo, verbose)?,
         cli::ManageSub::Pull { repo } => pull::run(repo, verbose)?,
         cli::ManageSub::Push { repo } => push::run(repo, verbose)?,
-        cli::ManageSub::Status { repo, fetch } => status::run(repo, fetch, verbose)?,
+        cli::ManageSub::Remember { csv } => remember::run(csv, verbose)?,
+        cli::ManageSub::Status { repo } => status::run(repo, verbose)?,
     }
     Ok(())
 }
@@ -27,6 +28,14 @@ mod clone {
     pub fn run(csv: String, directory: Option<String>, verbose: bool) -> super::anyResult<()> {
         let target_dir = directory.as_deref().unwrap_or(".");
         super::util::clone_repositories_from_csv(&csv, target_dir)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+mod fetch {
+    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
+        super::util::status_report(repo, true, verbose)
     }
 }
 
@@ -48,11 +57,8 @@ mod remember {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod status {
-    pub fn run(repo: Option<String>, fetch: bool, verbose: bool) -> super::anyResult<()> {
-        let repos = super::util::collect_repos(repo.clone(), verbose)?;
-        let statuses = super::util::get_statuses(&repos, fetch)?;
-        super::util::print_status_table(&statuses);
-        Ok(())
+    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
+        super::util::status_report(repo, false, verbose)
     }
 }
 

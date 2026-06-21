@@ -104,12 +104,20 @@ pub enum ManageSub {
         directory: Option<String>,
     },
 
+    /// Run git fetch before checking upstream
+    Fetch {
+        #[arg(short, long)]
+        repo: Option<String>,
+    },
+
+    /// Run git pull
     Pull {
         /// Specific repository path (default: scan subdirectories)
         #[arg(short, long)]
         repo: Option<String>,
     },
 
+    /// Run git push
     Push {
         /// Specific repository path (default: scan subdirectories)
         #[arg(short, long)]
@@ -128,10 +136,6 @@ pub enum ManageSub {
         /// Specific repository path (default: scan subdirectories)
         #[arg(short, long)]
         repo: Option<String>,
-
-        /// Run git fetch before checking upstream
-        #[arg(short, long, default_value_t = false)]
-        fetch: bool,
     },
 }
 
