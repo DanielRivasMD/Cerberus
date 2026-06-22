@@ -1,5 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+use anyhow::Result as anyResult;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 pub mod explore;
 pub mod manage;
 
@@ -7,14 +11,13 @@ pub mod manage;
 
 pub mod completion {
 
-    use anyhow::Result as anyResult;
     use clap::{Command, CommandFactory};
     use clap_complete::{generate, shells::*};
     use std::io;
 
     use crate::cli;
 
-    pub fn run(shell: cli::Shell) -> anyResult<()> {
+    pub fn run(shell: cli::Shell) -> super::anyResult<()> {
         let visible: Vec<_> = cli::Cli::command()
             .get_subcommands()
             .filter(|s| !s.is_hide_set())
@@ -22,6 +25,15 @@ pub mod completion {
             .collect();
 
         let mut cmd = Command::new(env!("CARGO_BIN_NAME")).subcommands(visible);
+
+        // Manually add global flags from the full CLI definition
+        let full = cli::Cli::command();
+        for arg in full.get_arguments() {
+            let name = arg.get_id().as_str();
+            if name == "recursive" || name == "verbose" {
+                cmd = cmd.arg(arg.clone());
+            }
+        }
 
         let name = cmd.get_name().to_string();
 
@@ -38,8 +50,6 @@ pub mod completion {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub mod identity {
-    use anyhow::Result as anyResult;
-
     const IDENTITY: &str = r#"In Greek mythology, Cerberus, Κέρβερος, often referred to as the hound of Hades, is a multi-headed dog
 that guards the gates of the underworld to prevent the dead from leaving.
 
@@ -48,7 +58,7 @@ a serpent for a tail, and snakes protruding from his body.
 
 Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours"#;
 
-    pub fn run() -> anyResult<()> {
+    pub fn run() -> super::anyResult<()> {
         println!("{}", IDENTITY);
         Ok(())
     }
