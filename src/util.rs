@@ -3,12 +3,76 @@
 use anyhow::{Context, Result, bail};
 use chrono::{Datelike, NaiveDateTime, Utc};
 use colored::*;
+use rayon::prelude::*;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use std::sync::Mutex;
 use walkdir::WalkDir;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+trait Named {
+    fn name(&self) -> &str;
+}
+
+impl Named for RepoStatus {
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+impl Named for SyncResult {
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+impl Named for RepoStats {
+    fn name(&self) -> &str {
+        &self.repo
+    }
+}
+impl Named for RepoDescribe {
+    fn name(&self) -> &str {
+        &self.repo
+    }
+}
+impl Named for (String, String) {
+    fn name(&self) -> &str {
+        &self.0
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Process repos in parallel. The closure `f` receives a repo path and returns a `Result<T>`.
+/// Successful results are collected and sorted by repo name. Any errors are printed as warnings.
+/// Returns a `Vec<T>` containing all successful results.
+fn par_process_repos<T: Send + Named>(
+    repos: &[String],
+    f: impl Fn(&str) -> Result<T> + Sync,
+) -> Vec<T>
+where
+    T: Send,
+{
+    let results = Mutex::new(Vec::new());
+    repos.par_iter().for_each(|repo| match f(repo) {
+        Ok(t) => {
+            results.lock().unwrap().push(t);
+        }
+        Err(e) => {
+            let name = Path::new(repo)
+                .file_name()
+                .unwrap_or(repo.as_ref())
+                .to_string_lossy();
+            eprintln!("Warning: {} (repo: {})", e, name);
+        }
+    });
+    let mut results = results.into_inner().unwrap();
+    results.sort_by_key(|item| item.name().to_lowercase());
+    results
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,20 +172,25 @@ pub struct RepoDescribe {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn print_describe_table(repos: &[String], _output_file: Option<&str>) -> Result<()> {
-    let mut rows = Vec::new();
-    for repo in repos {
+    let rows = par_process_repos(repos, |repo| {
+        let desc = populate_describe(repo)?;
         let name = Path::new(repo)
             .file_name()
             .unwrap()
             .to_string_lossy()
             .into_owned();
-        let desc = populate_describe(repo)?;
-        rows.push(RepoDescribe {
+        Ok(RepoDescribe {
             repo: name,
             overview: truncate(&desc.overview, 92),
             license: desc.license,
-        });
+        })
+    });
+
+    if rows.is_empty() {
+        println!("No descriptions available.");
+        return Ok(());
     }
+
     let widths = [25, 92, 7];
     let headers = vec!["Repo", "Overview", "License"];
     let align_left = [true, true, true];
@@ -201,15 +270,19 @@ fn detect_license(path: &str) -> Result<String> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn write_remember_csv(repos: &[String], writer: &mut dyn Write) -> Result<()> {
-    let mut wtr = csv::Writer::from_writer(writer);
-    wtr.write_record(&["repoName", "repoURL"])?;
-    for repo in repos {
+    let entries = par_process_repos(repos, |repo| {
         let name = Path::new(repo)
             .file_name()
             .unwrap()
             .to_string_lossy()
             .into_owned();
         let remote = get_remote_url(repo).unwrap_or_default();
+        Ok((name, remote))
+    });
+
+    let mut wtr = csv::Writer::from_writer(writer);
+    wtr.write_record(["repoName", "repoURL"])?;
+    for (name, remote) in entries {
         wtr.write_record(&[name, remote])?;
     }
     wtr.flush()?;
@@ -243,20 +316,7 @@ pub struct RepoStats {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<String>) -> Result<()> {
-    let mut rows = Vec::new();
-
-    for repo in repos {
-        match populate_repo_stats(repo, year) {
-            Ok(stats) => rows.push(stats),
-            Err(e) => {
-                let name = Path::new(repo)
-                    .file_name()
-                    .unwrap_or(repo.as_ref())
-                    .to_string_lossy();
-                eprintln!("Warning: could not compute stats for {}: {}", name, e);
-            }
-        }
-    }
+    let rows = par_process_repos(repos, |repo| populate_repo_stats(repo, year));
 
     if rows.is_empty() {
         println!("No stats available.");
@@ -523,28 +583,15 @@ pub fn status_report(repo: Option<String>, fetch: bool, verbose: bool) -> Result
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
-    let mut results = Vec::new();
-    for repo in repos {
+    let statuses = par_process_repos(repos, |repo| {
         let name = Path::new(repo)
             .file_name()
             .unwrap()
             .to_string_lossy()
             .into_owned();
-        let mut status = RepoStatus {
-            name: name.clone(),
-            clean: true,
-            upstream: "—".to_string(),
-            ahead: 0,
-            behind: 0,
-            error: None,
-        };
-        match get_single_status(repo, &name, fetch) {
-            Ok(stat) => status = stat,
-            Err(e) => status.error = Some(e.to_string()),
-        }
-        results.push(status);
-    }
-    Ok(results)
+        get_single_status(repo, &name, fetch)
+    });
+    Ok(statuses)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -664,26 +711,13 @@ pub struct SyncResult {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn sync_repos(repos: &[String], push: bool, pull: bool) -> Result<Vec<SyncResult>> {
-    let mut results = Vec::new();
-    for repo in repos {
-        let name = Path::new(repo)
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .into_owned();
-        let res = sync_single(repo, push, pull).unwrap_or_else(|e| SyncResult {
-            name: name.clone(),
-            success: false,
-            message: e.to_string(),
-            error: Some(e.to_string()),
-        });
-        results.push(res);
-    }
+    let results = par_process_repos(repos, |repo| sync_single(repo, push, pull));
     Ok(results)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: refactor & segregate push / pull
 fn sync_single(repo_path: &str, push: bool, pull: bool) -> Result<SyncResult> {
     let name = Path::new(repo_path)
         .file_name()
