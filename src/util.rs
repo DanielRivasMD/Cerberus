@@ -523,7 +523,7 @@ pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
             behind: 0,
             error: None,
         };
-        match get_single_status(repo, fetch) {
+        match get_single_status(repo, &name, fetch) {
             Ok(stat) => status = stat,
             Err(e) => status.error = Some(e.to_string()),
         }
@@ -534,7 +534,7 @@ pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn get_single_status(repo_path: &str, fetch: bool) -> Result<RepoStatus> {
+fn get_single_status(repo_path: &str, name: &str, fetch: bool) -> Result<RepoStatus> {
     let porcelain = call_git(repo_path, &["status", "--porcelain"])?;
     let clean = porcelain.is_empty();
     if fetch {
@@ -573,7 +573,7 @@ fn get_single_status(repo_path: &str, fetch: bool) -> Result<RepoStatus> {
         (0, 0)
     };
     Ok(RepoStatus {
-        name: String::new(),
+        name: name.to_string(),
         clean,
         upstream,
         ahead,
