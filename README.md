@@ -4,13 +4,7 @@
 
 ## Overview
 
-`cerberus`, the ferocious three-headed guardian of your repos
-
-## Installation
-
-### Language-Specific Setup
-
-    Go:  go install github.com/DanielRivasMD/Cerberus@latest
+`cerberus`, the ferocious three-headed guardian of the repos
 
 ## License
 
