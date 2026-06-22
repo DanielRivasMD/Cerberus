@@ -5,8 +5,20 @@ use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: add examples in help
-const HELP: &str = r"";
+const HELP: &str = r#"Guardian of the repos
+Examples:
+  cerberus explore stats                                        # Show stats for all repos in the current directory
+  cerberus explore stats --repo  --year 2025                    # Show stats for a specific repo and year
+  cerberus explore describe                                     # Explore repo descriptions
+  cerberus manage status                                        # Show status of all repos (without fetching)
+  cerberus manage fetch                                         # Fetch and then show status
+  cerberus manage pull                                          # Pull changes in all clean repos
+  cerberus manage push                                          # Push changes in all clean repos
+  cerberus manage clone --csv repos.csv --directory ~/projects  # Clone repos from a CSV file
+  cerberus manage remember --output repos.csv                   # Export repo names and remotes to CSV
+  cerberus identity                                             # Print the mythological identity
+  cerberus completion bash > cerberus.bash                      # Generate shell completions
+"#;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
