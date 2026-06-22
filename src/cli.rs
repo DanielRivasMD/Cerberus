@@ -96,6 +96,7 @@ pub enum ExploreSub {
         /// Year for commit frequency calculation
         #[arg(short, long, default_value_t = chrono::Utc::now().year())]
         year: i32,
+
         /// Time aggregation (not yet implemented)
         #[arg(short, long, default_value = "yearly")]
         time: String,
@@ -119,6 +120,10 @@ pub enum ManageSub {
         /// Directory to clone repositories into
         #[arg(long, value_hint = ValueHint::DirPath)]
         directory: Option<String>,
+
+        /// Perform a dry run
+        #[arg(short = 'n', long)]
+        dry_run: bool,
     },
 
     /// Run git fetch before checking upstream
@@ -132,6 +137,10 @@ pub enum ManageSub {
         /// Specific repository path (default: scan subdirectories)
         #[arg(short, long)]
         repo: Option<String>,
+
+        /// Perform a dry run
+        #[arg(short = 'n', long)]
+        dry_run: bool,
     },
 
     /// Run git push
@@ -139,6 +148,10 @@ pub enum ManageSub {
         /// Specific repository path (default: scan subdirectories)
         #[arg(short, long)]
         repo: Option<String>,
+
+        /// Perform a dry run
+        #[arg(short = 'n', long)]
+        dry_run: bool,
     },
 
     /// Recall repos as CSV

@@ -151,7 +151,7 @@ pub fn call_git(repo_path: &str, args: &[&str]) -> anyResult<String> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Clones repositories from CSV file.
-pub fn clone_repositories_from_csv(csv_path: &str, target_dir: &str) -> anyResult<()> {
+pub fn clone_repositories_from_csv(csv_path: &str, target_dir: &str, dry_run: bool) -> anyResult<()> {
     let mut reader = csv::Reader::from_path(csv_path)?;
     let mut first = true;
     for result in reader.records() {
@@ -172,14 +172,18 @@ pub fn clone_repositories_from_csv(csv_path: &str, target_dir: &str) -> anyResul
             continue;
         }
         let dest = Path::new(target_dir).join(&repo_name);
-        println!("Cloning {} into {}", repo_url, dest.display());
-        let status = Command::new("git")
-            .arg("clone")
-            .arg(&repo_url)
-            .arg(&dest)
-            .status()?;
-        if !status.success() {
-            bail!("failed to clone {}", repo_url);
+        if dry_run {
+            println!("[DRY RUN] Would clone {} into {}", repo_url, dest.display());
+        } else {
+            println!("Cloning {} into {}", repo_url, dest.display());
+            let status = Command::new("git")
+                .arg("clone")
+                .arg(&repo_url)
+                .arg(&dest)
+                .status()?;
+            if !status.success() {
+                bail!("failed to clone {}", repo_url);
+            }
         }
     }
     Ok(())
@@ -341,7 +345,11 @@ pub struct RepoStats {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<String>) -> anyResult<()> {
+pub fn print_stats_table(
+    repos: &[String],
+    year: i32,
+    _output_file: &Option<String>,
+) -> anyResult<()> {
     let rows = par_process_repos(repos, |repo| populate_repo_stats(repo, year));
 
     if rows.is_empty() {
@@ -599,13 +607,17 @@ pub struct RepoStatus {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Run a full status report: collect repos, optionally fetch, and print the table
-pub fn status_report(repo: Option<String>, fetch: bool, recursive: bool, verbose: bool) -> anyResult<()> {
+pub fn status_report(
+    repo: Option<String>,
+    fetch: bool,
+    recursive: bool,
+    verbose: bool,
+) -> anyResult<()> {
     let repos = collect_repos(repo, recursive, verbose)?;
     let statuses = get_statuses(&repos, fetch)?;
     print_status_table(&statuses);
     Ok(())
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -737,15 +749,20 @@ pub struct SyncResult {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn sync_repos(repos: &[String], push: bool, pull: bool) -> anyResult<Vec<SyncResult>> {
-    let results = par_process_repos(repos, |repo| sync_single(repo, push, pull));
+pub fn sync_repos(
+    repos: &[String],
+    push: bool,
+    pull: bool,
+    dry_run: bool,
+) -> anyResult<Vec<SyncResult>> {
+    let results = par_process_repos(repos, |repo| sync_single(repo, push, pull, dry_run));
     Ok(results)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: refactor & segregate push / pull
-fn sync_single(repo_path: &str, push: bool, pull: bool) -> anyResult<SyncResult> {
+fn sync_single(repo_path: &str, push: bool, pull: bool, dry_run: bool) -> anyResult<SyncResult> {
     let name = Path::new(repo_path)
         .file_name()
         .unwrap()
@@ -762,6 +779,19 @@ fn sync_single(repo_path: &str, push: bool, pull: bool) -> anyResult<SyncResult>
     }
     let (ahead, behind) = get_ahead_behind(repo_path).unwrap_or((0, 0));
     if pull {
+        if dry_run {
+            let msg = if behind > 0 {
+                format!("[DRY RUN] Would pull {} commits", behind)
+            } else {
+                "[DRY RUN] Already up to date".to_string()
+            };
+            return Ok(SyncResult {
+                name,
+                success: true,
+                message: msg,
+                error: None,
+            });
+        }
         let output = Command::new("git")
             .args(["-C", repo_path, "pull"])
             .output()?;
@@ -802,6 +832,20 @@ fn sync_single(repo_path: &str, push: bool, pull: bool) -> anyResult<SyncResult>
             })
         }
     } else {
+        // push
+        if dry_run {
+            let msg = if ahead > 0 {
+                format!("[DRY RUN] Would push {} commits", ahead)
+            } else {
+                "[DRY RUN] Everything up-to-date".to_string()
+            };
+            return Ok(SyncResult {
+                name,
+                success: true,
+                message: msg,
+                error: None,
+            });
+        }
         let output = Command::new("git")
             .args(["-C", repo_path, "push"])
             .output()?;

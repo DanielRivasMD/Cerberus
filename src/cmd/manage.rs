@@ -12,10 +12,14 @@ use crate::util;
 
 pub fn run(sub: cli::ManageSub, recursive: bool, verbose: bool) -> anyResult<()> {
     match sub {
-        cli::ManageSub::Clone { csv, directory } => clone::run(csv, directory, verbose)?,
+        cli::ManageSub::Clone {
+            csv,
+            directory,
+            dry_run,
+        } => clone::run(csv, directory, dry_run, verbose)?,
         cli::ManageSub::Fetch { repo } => fetch::run(repo, recursive, verbose)?,
-        cli::ManageSub::Pull { repo } => pull::run(repo, recursive, verbose)?,
-        cli::ManageSub::Push { repo } => push::run(repo, recursive, verbose)?,
+        cli::ManageSub::Pull { repo, dry_run } => pull::run(repo, recursive, dry_run, verbose)?,
+        cli::ManageSub::Push { repo, dry_run } => push::run(repo, recursive, dry_run, verbose)?,
         cli::ManageSub::Remember { csv } => remember::run(csv, recursive, verbose)?,
         cli::ManageSub::Status { repo } => status::run(repo, recursive, verbose)?,
     }
@@ -25,9 +29,14 @@ pub fn run(sub: cli::ManageSub, recursive: bool, verbose: bool) -> anyResult<()>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod clone {
-    pub fn run(csv: String, directory: Option<String>, verbose: bool) -> super::anyResult<()> {
+    pub fn run(
+        csv: String,
+        directory: Option<String>,
+        dry_run: bool,
+        verbose: bool,
+    ) -> super::anyResult<()> {
         let target_dir = directory.as_deref().unwrap_or(".");
-        super::util::clone_repositories_from_csv(&csv, target_dir)
+        super::util::clone_repositories_from_csv(&csv, target_dir, dry_run)
     }
 }
 
@@ -65,10 +74,15 @@ mod status {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod pull {
-    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+    pub fn run(
+        repo: Option<String>,
+        recursive: bool,
+        dry_run: bool,
+        verbose: bool,
+    ) -> super::anyResult<()> {
         let repos = super::util::collect_repos(repo.clone(), recursive, verbose)?;
         let action = "pull";
-        let results = super::util::sync_repos(&repos, false, true)?;
+        let results = super::util::sync_repos(&repos, false, true, dry_run)?;
         super::util::print_sync_table(&results, action);
         Ok(())
     }
@@ -77,10 +91,10 @@ mod pull {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod push {
-    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+    pub fn run(repo: Option<String>, recursive: bool, dry_run: bool, verbose: bool) -> super::anyResult<()> {
         let repos = super::util::collect_repos(repo.clone(), recursive, verbose)?;
         let action = "push";
-        let results = super::util::sync_repos(&repos, true, false)?;
+        let results = super::util::sync_repos(&repos, true, false, dry_run)?;
         super::util::print_sync_table(&results, action);
         Ok(())
     }
