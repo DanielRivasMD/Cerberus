@@ -10,9 +10,9 @@ use crate::util;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn run(sub: cli::ExploreSub, verbose: bool) -> anyResult<()> {
+pub fn run(sub: cli::ExploreSub, recursive: bool, verbose: bool) -> anyResult<()> {
     match sub {
-        cli::ExploreSub::Describe => describe::run(verbose)?,
+        cli::ExploreSub::Describe => describe::run(recursive, verbose)?,
         cli::ExploreSub::Readme => readme::run()?,
         cli::ExploreSub::Roadmap => roadmap::run()?,
         cli::ExploreSub::Stats {
@@ -20,7 +20,7 @@ pub fn run(sub: cli::ExploreSub, verbose: bool) -> anyResult<()> {
             year,
             time,
             output,
-        } => stats::run(repo, year, time, output, verbose)?,
+        } => stats::run(repo, year, time, output, recursive, verbose)?,
     }
     Ok(())
 }
@@ -29,8 +29,8 @@ pub fn run(sub: cli::ExploreSub, verbose: bool) -> anyResult<()> {
 
 // TODO: describe does not use remote URL
 mod describe {
-    pub fn run(verbose: bool) -> super::anyResult<()> {
-        let repos = super::util::collect_repos(None, verbose)?;
+    pub fn run(recursive: bool, verbose: bool) -> super::anyResult<()> {
+        let repos = super::util::collect_repos(None, recursive, verbose)?;
         super::util::print_describe_table(&repos, None)?;
         Ok(())
     }
@@ -105,6 +105,7 @@ mod stats {
         year: i32,
         time: String,
         output: Option<String>,
+        recursive: bool,
         verbose: bool,
     ) -> super::anyResult<()> {
         let specific = if repo == "." {
@@ -112,7 +113,7 @@ mod stats {
         } else {
             Some(repo.clone())
         };
-        let repos = super::util::collect_repos(specific, verbose)?;
+        let repos = super::util::collect_repos(specific, recursive, verbose)?;
         super::util::print_stats_table(&repos, year, &output)?;
         Ok(())
     }

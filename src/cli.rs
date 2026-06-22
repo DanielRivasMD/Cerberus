@@ -35,8 +35,12 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
 
+    /// Recursively scan for nested repositories (one level deep)
+    #[arg(global = true, short, long)]
+    pub recursive: bool,
+
     /// Enable verbose diagnostics
-    #[arg(global = true, short = 'v', long)]
+    #[arg(global = true, short, long)]
     pub verbose: bool,
 }
 

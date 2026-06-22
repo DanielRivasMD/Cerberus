@@ -23,8 +23,8 @@ fn main() -> anyResult<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Explore { sub } => explore::run(sub, cli.verbose)?,
-        Command::Manage { sub } => manage::run(sub, cli.verbose)?,
+        Command::Explore { sub } => explore::run(sub, cli.recursive, cli.verbose)?,
+        Command::Manage { sub } => manage::run(sub, cli.recursive, cli.verbose)?,
         Command::Identity => identity::run()?,
         Command::Completion { shell } => completion::run(shell)?,
     }

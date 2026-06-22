@@ -10,15 +10,14 @@ use crate::util;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: introduce parallel exectution
-pub fn run(sub: cli::ManageSub, verbose: bool) -> anyResult<()> {
+pub fn run(sub: cli::ManageSub, recursive: bool, verbose: bool) -> anyResult<()> {
     match sub {
         cli::ManageSub::Clone { csv, directory } => clone::run(csv, directory, verbose)?,
-        cli::ManageSub::Fetch { repo } => fetch::run(repo, verbose)?,
-        cli::ManageSub::Pull { repo } => pull::run(repo, verbose)?,
-        cli::ManageSub::Push { repo } => push::run(repo, verbose)?,
-        cli::ManageSub::Remember { csv } => remember::run(csv, verbose)?,
-        cli::ManageSub::Status { repo } => status::run(repo, verbose)?,
+        cli::ManageSub::Fetch { repo } => fetch::run(repo, recursive, verbose)?,
+        cli::ManageSub::Pull { repo } => pull::run(repo, recursive, verbose)?,
+        cli::ManageSub::Push { repo } => push::run(repo, recursive, verbose)?,
+        cli::ManageSub::Remember { csv } => remember::run(csv, recursive, verbose)?,
+        cli::ManageSub::Status { repo } => status::run(repo, recursive, verbose)?,
     }
     Ok(())
 }
@@ -35,16 +34,16 @@ mod clone {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod fetch {
-    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
-        super::util::status_report(repo, true, verbose)
+    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+        super::util::status_report(repo, true, recursive, verbose)
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod remember {
-    pub fn run(csv: Option<String>, verbose: bool) -> super::anyResult<()> {
-        let repos = super::util::collect_repos(None, verbose)?;
+    pub fn run(csv: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+        let repos = super::util::collect_repos(None, recursive, verbose)?;
         let mut writer: Box<dyn super::Write> = if let Some(path) = &csv {
             Box::new(std::fs::File::create(path)?)
         } else {
@@ -58,16 +57,16 @@ mod remember {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod status {
-    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
-        super::util::status_report(repo, false, verbose)
+    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+        super::util::status_report(repo, false, recursive, verbose)
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod pull {
-    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
-        let repos = super::util::collect_repos(repo.clone(), verbose)?;
+    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+        let repos = super::util::collect_repos(repo.clone(), recursive, verbose)?;
         let action = "pull";
         let results = super::util::sync_repos(&repos, false, true)?;
         super::util::print_sync_table(&results, action);
@@ -78,9 +77,8 @@ mod pull {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 mod push {
-
-    pub fn run(repo: Option<String>, verbose: bool) -> super::anyResult<()> {
-        let repos = super::util::collect_repos(repo.clone(), verbose)?;
+    pub fn run(repo: Option<String>, recursive: bool, verbose: bool) -> super::anyResult<()> {
+        let repos = super::util::collect_repos(repo.clone(), recursive, verbose)?;
         let action = "push";
         let results = super::util::sync_repos(&repos, true, false)?;
         super::util::print_sync_table(&results, action);

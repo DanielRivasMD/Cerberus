@@ -76,29 +76,55 @@ where
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Collects repository paths (absolute).
-pub fn collect_repos(specific: Option<String>, _verbose: bool) -> Result<Vec<String>> {
-    if let Some(p) = specific {
+/// Collects repository paths (absolute). If `recursive` is true, also scan one level deep
+/// inside each found repo for nested Git repositories.
+pub fn collect_repos(
+    specific: Option<String>,
+    recursive: bool,
+    verbose: bool,
+) -> Result<Vec<String>> {
+    let mut repos = if let Some(p) = specific {
         let abs = std::fs::canonicalize(&p).with_context(|| format!("resolving path: {}", p))?;
         if !abs.join(".git").is_dir() {
             bail!("{} is not a Git repository", abs.display());
         }
-        return Ok(vec![abs.to_string_lossy().into_owned()]);
-    }
-
-    let cwd = std::env::current_dir()?;
-    if cwd.join(".git").is_dir() {
-        return Ok(vec![cwd.to_string_lossy().into_owned()]);
-    }
-
-    let mut repos = Vec::new();
-    for entry in std::fs::read_dir(&cwd)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() && path.join(".git").is_dir() {
-            repos.push(path.to_string_lossy().into_owned());
+        vec![abs.to_string_lossy().into_owned()]
+    } else {
+        let cwd = std::env::current_dir()?;
+        if cwd.join(".git").is_dir() {
+            vec![cwd.to_string_lossy().into_owned()]
+        } else {
+            let mut v = Vec::new();
+            for entry in std::fs::read_dir(&cwd)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_dir() && path.join(".git").is_dir() {
+                    v.push(path.to_string_lossy().into_owned());
+                }
+            }
+            v
         }
+    };
+
+    if recursive {
+        let mut nested = Vec::new();
+        for repo in &repos {
+            if let Ok(entries) = std::fs::read_dir(repo) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_dir() && path.join(".git").is_dir() {
+                        // Avoid duplicates if nested repo was already listed
+                        let nested_path = path.to_string_lossy().into_owned();
+                        if !repos.contains(&nested_path) && !nested.contains(&nested_path) {
+                            nested.push(nested_path);
+                        }
+                    }
+                }
+            }
+        }
+        repos.extend(nested);
     }
+
     Ok(repos)
 }
 
@@ -573,12 +599,13 @@ pub struct RepoStatus {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Run a full status report: collect repos, optionally fetch, and print the table
-pub fn status_report(repo: Option<String>, fetch: bool, verbose: bool) -> Result<()> {
-    let repos = collect_repos(repo, verbose)?;
+pub fn status_report(repo: Option<String>, fetch: bool, recursive: bool, verbose: bool) -> Result<()> {
+    let repos = collect_repos(repo, recursive, verbose)?;
     let statuses = get_statuses(&repos, fetch)?;
     print_status_table(&statuses);
     Ok(())
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
