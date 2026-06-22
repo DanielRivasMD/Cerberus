@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result as anyResult, bail};
 use chrono::{Datelike, NaiveDateTime, Utc};
 use colored::*;
 use rayon::prelude::*;
@@ -46,12 +46,12 @@ impl Named for (String, String) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Process repos in parallel. The closure `f` receives a repo path and returns a `Result<T>`.
+/// Process repos in parallel. The closure `f` receives a repo path and returns a `anyResult<T>`.
 /// Successful results are collected and sorted by repo name. Any errors are printed as warnings.
 /// Returns a `Vec<T>` containing all successful results.
 fn par_process_repos<T: Send + Named>(
     repos: &[String],
-    f: impl Fn(&str) -> Result<T> + Sync,
+    f: impl Fn(&str) -> anyResult<T> + Sync,
 ) -> Vec<T>
 where
     T: Send,
@@ -82,7 +82,7 @@ pub fn collect_repos(
     specific: Option<String>,
     recursive: bool,
     verbose: bool,
-) -> Result<Vec<String>> {
+) -> anyResult<Vec<String>> {
     let mut repos = if let Some(p) = specific {
         let abs = std::fs::canonicalize(&p).with_context(|| format!("resolving path: {}", p))?;
         if !abs.join(".git").is_dir() {
@@ -131,7 +131,7 @@ pub fn collect_repos(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Runs git command with -C repo_path and returns trimmed stdout.
-pub fn call_git(repo_path: &str, args: &[&str]) -> Result<String> {
+pub fn call_git(repo_path: &str, args: &[&str]) -> anyResult<String> {
     let mut cmd = Command::new("git");
     cmd.arg("-C").arg(repo_path);
     cmd.args(args);
@@ -151,7 +151,7 @@ pub fn call_git(repo_path: &str, args: &[&str]) -> Result<String> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Clones repositories from CSV file.
-pub fn clone_repositories_from_csv(csv_path: &str, target_dir: &str) -> Result<()> {
+pub fn clone_repositories_from_csv(csv_path: &str, target_dir: &str) -> anyResult<()> {
     let mut reader = csv::Reader::from_path(csv_path)?;
     let mut first = true;
     for result in reader.records() {
@@ -197,7 +197,7 @@ pub struct RepoDescribe {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn print_describe_table(repos: &[String], _output_file: Option<&str>) -> Result<()> {
+pub fn print_describe_table(repos: &[String], _output_file: Option<&str>) -> anyResult<()> {
     let rows = par_process_repos(repos, |repo| {
         let desc = populate_describe(repo)?;
         let name = Path::new(repo)
@@ -228,7 +228,7 @@ pub fn print_describe_table(repos: &[String], _output_file: Option<&str>) -> Res
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn populate_describe(repo_path: &str) -> Result<RepoDescribe> {
+fn populate_describe(repo_path: &str) -> anyResult<RepoDescribe> {
     let base = Path::new(repo_path);
     let overview = if base.join("README.md").exists() {
         parse_readme(base.join("README.md").to_str().unwrap(), 92)?
@@ -249,7 +249,7 @@ fn populate_describe(repo_path: &str) -> Result<RepoDescribe> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn parse_readme(path: &str, max_chars: usize) -> Result<String> {
+fn parse_readme(path: &str, max_chars: usize) -> anyResult<String> {
     let content = std::fs::read_to_string(path)?;
     let mut in_overview = false;
     let mut lines = Vec::new();
@@ -272,7 +272,7 @@ fn parse_readme(path: &str, max_chars: usize) -> Result<String> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn detect_license(path: &str) -> Result<String> {
+fn detect_license(path: &str) -> anyResult<String> {
     let content = std::fs::read_to_string(path)?.to_lowercase();
     let keywords = [
         ("mit license", "MIT"),
@@ -295,7 +295,7 @@ fn detect_license(path: &str) -> Result<String> {
 // Remember
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn write_remember_csv(repos: &[String], writer: &mut dyn Write) -> Result<()> {
+pub fn write_remember_csv(repos: &[String], writer: &mut dyn Write) -> anyResult<()> {
     let entries = par_process_repos(repos, |repo| {
         let name = Path::new(repo)
             .file_name()
@@ -317,7 +317,7 @@ pub fn write_remember_csv(repos: &[String], writer: &mut dyn Write) -> Result<()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn get_remote_url(repo_path: &str) -> Result<String> {
+fn get_remote_url(repo_path: &str) -> anyResult<String> {
     call_git(repo_path, &["config", "--get", "remote.origin.url"])
 }
 
@@ -341,7 +341,7 @@ pub struct RepoStats {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<String>) -> Result<()> {
+pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<String>) -> anyResult<()> {
     let rows = par_process_repos(repos, |repo| populate_repo_stats(repo, year));
 
     if rows.is_empty() {
@@ -376,7 +376,7 @@ pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<Stri
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn populate_repo_stats(repo_path: &str, year: i32) -> Result<RepoStats> {
+fn populate_repo_stats(repo_path: &str, year: i32) -> anyResult<RepoStats> {
     let name = Path::new(repo_path)
         .file_name()
         .unwrap()
@@ -428,7 +428,7 @@ fn populate_repo_stats(repo_path: &str, year: i32) -> Result<RepoStats> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn call_tokei(repo_path: &str) -> Result<String> {
+fn call_tokei(repo_path: &str) -> anyResult<String> {
     let output = Command::new("tokei")
         .args(["-C", "-o", "json"]) // JSON output
         .current_dir(repo_path)
@@ -441,7 +441,7 @@ fn call_tokei(repo_path: &str) -> Result<String> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn parse_tokei_json(json_str: &str) -> Result<(String, usize, usize)> {
+fn parse_tokei_json(json_str: &str) -> anyResult<(String, usize, usize)> {
     let v: Value = serde_json::from_str(json_str)?;
     let obj = v.as_object().context("tokei JSON is not an object")?;
 
@@ -485,7 +485,7 @@ fn parse_tokei_json(json_str: &str) -> Result<(String, usize, usize)> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn repo_age(repo_path: &str) -> Result<String> {
+fn repo_age(repo_path: &str) -> anyResult<String> {
     let out = call_git(repo_path, &["log", "--reverse", "--format=%ci"])?;
     let first = out.lines().next().unwrap_or("");
     if first.is_empty() {
@@ -522,14 +522,14 @@ fn parse_age_months(age: &str) -> usize {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn count_commits(repo_path: &str) -> Result<usize> {
+fn count_commits(repo_path: &str) -> anyResult<usize> {
     let out = call_git(repo_path, &["rev-list", "--count", "HEAD"])?;
     Ok(out.parse::<usize>().unwrap_or(0))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn repo_size(repo_path: &str) -> Result<String> {
+fn repo_size(repo_path: &str) -> anyResult<String> {
     let mut size: u64 = 0;
     for entry in WalkDir::new(repo_path).into_iter().filter_map(|e| e.ok()) {
         if entry.file_type().is_file() {
@@ -558,7 +558,7 @@ fn format_size(bytes: u64) -> String {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn commit_frequency(repo_path: &str, year: i32) -> Result<HashMap<String, usize>> {
+fn commit_frequency(repo_path: &str, year: i32) -> anyResult<HashMap<String, usize>> {
     let mut freq = HashMap::new();
     for m in 1..=12 {
         freq.insert(format!("{}-{:02}", year, m), 0);
@@ -599,7 +599,7 @@ pub struct RepoStatus {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Run a full status report: collect repos, optionally fetch, and print the table
-pub fn status_report(repo: Option<String>, fetch: bool, recursive: bool, verbose: bool) -> Result<()> {
+pub fn status_report(repo: Option<String>, fetch: bool, recursive: bool, verbose: bool) -> anyResult<()> {
     let repos = collect_repos(repo, recursive, verbose)?;
     let statuses = get_statuses(&repos, fetch)?;
     print_status_table(&statuses);
@@ -609,7 +609,7 @@ pub fn status_report(repo: Option<String>, fetch: bool, recursive: bool, verbose
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
+pub fn get_statuses(repos: &[String], fetch: bool) -> anyResult<Vec<RepoStatus>> {
     let statuses = par_process_repos(repos, |repo| {
         let name = Path::new(repo)
             .file_name()
@@ -623,7 +623,7 @@ pub fn get_statuses(repos: &[String], fetch: bool) -> Result<Vec<RepoStatus>> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn get_single_status(repo_path: &str, name: &str, fetch: bool) -> Result<RepoStatus> {
+fn get_single_status(repo_path: &str, name: &str, fetch: bool) -> anyResult<RepoStatus> {
     let porcelain = call_git(repo_path, &["status", "--porcelain"])?;
     let clean = porcelain.is_empty();
     if fetch {
@@ -737,7 +737,7 @@ pub struct SyncResult {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn sync_repos(repos: &[String], push: bool, pull: bool) -> Result<Vec<SyncResult>> {
+pub fn sync_repos(repos: &[String], push: bool, pull: bool) -> anyResult<Vec<SyncResult>> {
     let results = par_process_repos(repos, |repo| sync_single(repo, push, pull));
     Ok(results)
 }
@@ -745,7 +745,7 @@ pub fn sync_repos(repos: &[String], push: bool, pull: bool) -> Result<Vec<SyncRe
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: refactor & segregate push / pull
-fn sync_single(repo_path: &str, push: bool, pull: bool) -> Result<SyncResult> {
+fn sync_single(repo_path: &str, push: bool, pull: bool) -> anyResult<SyncResult> {
     let name = Path::new(repo_path)
         .file_name()
         .unwrap()
@@ -846,7 +846,7 @@ fn sync_single(repo_path: &str, push: bool, pull: bool) -> Result<SyncResult> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn get_ahead_behind(repo_path: &str) -> Result<(usize, usize)> {
+fn get_ahead_behind(repo_path: &str) -> anyResult<(usize, usize)> {
     let upstream = call_git(
         repo_path,
         &[
