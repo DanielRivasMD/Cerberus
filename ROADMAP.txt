@@ -11,7 +11,7 @@ strengths
 
 weaknesses
 * sequential processing of repos makes large scans slow
-* describe does not include the remote URL
+- describe does not include the remote URL
 - stats command promises quarterly aggregation but only computes yearly => --time flag unused
 
 usefulness
@@ -28,13 +28,9 @@ enhancements
 
 
 ==================================================
-src/cli.rs
-  line 8      TODO   add examples in help
 src/cmd/explore.rs
   line 30     TODO   describe does not use remote URL
-  line 101    TODO   bugged type casting
-  line 102    TODO   command aggregation on quatterly
+  line 101    TODO   command aggregation on quatterly
 src/cmd/manage.rs
   line 13     TODO   introduce parallel exectution
-  line 14     TODO   reporting not printing the repo name
 ==================================================
