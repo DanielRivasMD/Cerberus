@@ -10,10 +10,8 @@ strengths
 - commands handle both single-repo & recursive directory scanning
 
 weaknesses
-* update table / report rendering
 * sequential processing of repos makes large scans slow
 * describe does not include the remote URL
-* stats => bug on type casting
 - stats command promises quarterly aggregation but only computes yearly => --time flag unused
 
 usefulness
