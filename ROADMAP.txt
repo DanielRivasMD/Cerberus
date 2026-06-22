@@ -10,7 +10,6 @@ strengths
 - commands handle both single-repo & recursive directory scanning
 
 weaknesses
-* sequential processing of repos makes large scans slow
 - describe does not include the remote URL
 - stats command promises quarterly aggregation but only computes yearly => --time flag unused
 
@@ -18,9 +17,6 @@ usefulness
 - useful for developers managing handfuls of local Git clones who need quick overviews, batch operations & lightweight repo stats
 
 enhancements
-* parallelization
-* use recursive reading on children repos
-* add dry-run mode
 - add simple unicode graphics
 - implement quarterly / aggregation logic
 - consider tui for version 2.0
@@ -31,6 +27,6 @@ enhancements
 src/cmd/explore.rs
   line 30     TODO   describe does not use remote URL
   line 101    TODO   command aggregation on quatterly
-src/cmd/manage.rs
-  line 13     TODO   introduce parallel exectution
+src/util.rs
+  line 747    TODO   refactor & segregate push / pull
 ==================================================
