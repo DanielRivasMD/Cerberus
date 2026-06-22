@@ -3,6 +3,7 @@
 use anyhow::{Context, Result, bail};
 use chrono::{Datelike, NaiveDateTime, Utc};
 use colored::*;
+use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
@@ -241,12 +242,27 @@ pub struct RepoStats {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn print_stats_table(repos: &[String], year: i32, output_file: &Option<String>) -> Result<()> {
+pub fn print_stats_table(repos: &[String], year: i32, _output_file: &Option<String>) -> Result<()> {
     let mut rows = Vec::new();
+
     for repo in repos {
-        let stats = populate_repo_stats(repo, year)?;
-        rows.push(stats);
+        match populate_repo_stats(repo, year) {
+            Ok(stats) => rows.push(stats),
+            Err(e) => {
+                let name = Path::new(repo)
+                    .file_name()
+                    .unwrap_or(repo.as_ref())
+                    .to_string_lossy();
+                eprintln!("Warning: could not compute stats for {}: {}", name, e);
+            }
+        }
     }
+
+    if rows.is_empty() {
+        println!("No stats available.");
+        return Ok(());
+    }
+
     let widths = [25, 6, 6, 15, 6, 7, 4, 3, 3, 3, 3];
     let headers = vec![
         "Repo", "Commit", "Age", "Language", "Lines", "Size", "Mean", "Q1", "Q2", "Q3", "Q4",
@@ -280,8 +296,9 @@ fn populate_repo_stats(repo_path: &str, year: i32) -> Result<RepoStats> {
         .unwrap()
         .to_string_lossy()
         .into_owned();
-    let tokei_out = call_tokei(repo_path)?;
-    let (language, lines_percent) = parse_tokei(&tokei_out)?;
+
+    let tokei_json = call_tokei(repo_path)?;
+    let (language, lines_percent, total_lines) = parse_tokei_json(&tokei_json)?;
 
     let age = repo_age(repo_path)?;
     let commit_count = count_commits(repo_path)?;
@@ -313,7 +330,7 @@ fn populate_repo_stats(repo_path: &str, year: i32) -> Result<RepoStats> {
         commit: commit_count,
         age,
         language: format!("{} {}%", language, lines_percent),
-        lines: parse_tokei_total_lines(&tokei_out)?,
+        lines: total_lines,
         size,
         mean,
         q1,
@@ -327,7 +344,7 @@ fn populate_repo_stats(repo_path: &str, year: i32) -> Result<RepoStats> {
 
 fn call_tokei(repo_path: &str) -> Result<String> {
     let output = Command::new("tokei")
-        .arg("-C")
+        .args(["-C", "-o", "json"]) // JSON output
         .current_dir(repo_path)
         .output()?;
     if !output.status.success() {
@@ -338,48 +355,46 @@ fn call_tokei(repo_path: &str) -> Result<String> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn parse_tokei(output: &str) -> Result<(String, usize)> {
+fn parse_tokei_json(json_str: &str) -> Result<(String, usize, usize)> {
+    let v: Value = serde_json::from_str(json_str)?;
+    let obj = v.as_object().context("tokei JSON is not an object")?;
+
+    let mut total_lines = 0usize;
     let mut dominant_lang = String::new();
-    let mut dominant_lines = 0;
-    let mut total_lines = 0;
-    let mut dominant_lines_pct = 0;
+    let mut max_lines = 0u64;
 
-    for line in output.lines() {
-        if line.starts_with('=') || line.trim().is_empty() {
+    for (lang, entry) in obj {
+        if lang.eq_ignore_ascii_case("Total") {
+            // Compute total lines from the Total entry
+            let code = entry["code"].as_u64().unwrap_or(0);
+            let comments = entry["comments"].as_u64().unwrap_or(0);
+            let blanks = entry["blanks"].as_u64().unwrap_or(0);
+            total_lines = (code + comments + blanks) as usize;
             continue;
         }
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() < 6 {
-            continue;
-        }
-        if parts[0].to_lowercase() == "total" {
-            total_lines = parts[2].parse::<usize>()?;
-            continue;
-        }
-        let lines: usize = parts[2].parse()?;
-        if lines > dominant_lines {
-            dominant_lines = lines;
-            dominant_lang = parts[0].to_string();
-        }
-    }
-    if total_lines > 0 {
-        dominant_lines_pct = (dominant_lines * 100) / total_lines;
-    }
-    Ok((dominant_lang, dominant_lines_pct))
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+        let code = entry["code"].as_u64().unwrap_or(0);
+        let comments = entry["comments"].as_u64().unwrap_or(0);
+        let blanks = entry["blanks"].as_u64().unwrap_or(0);
+        let lines = code + comments + blanks;
 
-fn parse_tokei_total_lines(output: &str) -> Result<usize> {
-    for line in output.lines() {
-        if line.to_lowercase().contains("total") {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.len() >= 3 {
-                return Ok(parts[2].parse::<usize>()?);
-            }
+        if lines > max_lines {
+            max_lines = lines;
+            dominant_lang = lang.clone();
         }
     }
-    Ok(0)
+
+    if dominant_lang.is_empty() {
+        bail!("no language entries found in tokei output");
+    }
+
+    let pct = if total_lines > 0 {
+        (max_lines as usize * 100) / total_lines
+    } else {
+        0
+    };
+
+    Ok((dominant_lang, pct, total_lines))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
