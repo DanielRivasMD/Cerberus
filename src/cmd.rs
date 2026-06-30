@@ -25,6 +25,7 @@ pub mod completion {
             .collect();
 
         let mut cmd = Command::new(env!("CARGO_BIN_NAME")).subcommands(visible);
+        let name = cmd.get_name().to_string();
 
         // Manually add global flags from the full CLI definition
         let full = cli::Cli::command();
@@ -34,8 +35,6 @@ pub mod completion {
                 cmd = cmd.arg(arg.clone());
             }
         }
-
-        let name = cmd.get_name().to_string();
 
         match shell {
             cli::Shell::Bash => generate(Bash, &mut cmd, name, &mut io::stdout()),
