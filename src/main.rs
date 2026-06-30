@@ -5,14 +5,6 @@ use clap::Parser;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-use cli::{Cli, Command};
-use cmd::completion;
-use cmd::explore;
-use cmd::identity;
-use cmd::manage;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 mod cli;
 mod cmd;
 mod util;
@@ -20,13 +12,13 @@ mod util;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 fn main() -> anyResult<()> {
-    let cli = Cli::parse();
+    let cli = cli::Cli::parse();
 
     match cli.command {
-        Command::Explore { sub } => explore::run(sub, cli.recursive, cli.verbose)?,
-        Command::Manage { sub } => manage::run(sub, cli.recursive, cli.verbose)?,
-        Command::Identity => identity::run()?,
-        Command::Completion { shell } => completion::run(shell)?,
+        cli::Command::Explore { sub } => cmd::explore::run(sub, cli.recursive, cli.verbose)?,
+        cli::Command::Manage { sub } => cmd::manage::run(sub, cli.recursive, cli.verbose)?,
+        cli::Command::Identity => cmd::identity::run()?,
+        cli::Command::Completion { shell } => cmd::completion::run(shell)?,
     }
     Ok(())
 }
