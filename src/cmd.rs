@@ -50,16 +50,20 @@ pub mod completion {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub mod identity {
-    const IDENTITY: &str = r#"In Greek mythology, Cerberus, Κέρβερος, often referred to as the hound of Hades, is a multi-headed dog
+    use colored::*;
+
+    pub fn run() -> super::anyResult<()> {
+        println!(
+    "In Greek mythology, {Cerberus}, {greek_cerberus}, often referred to as the hound of Hades, is a multi-headed dog
 that guards the gates of the underworld to prevent the dead from leaving.
 
 He was the offspring of the monsters Echidna and Typhon, and was usually described as having three heads,
 a serpent for a tail, and snakes protruding from his body.
 
-Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours"#;
-
-    pub fn run() -> super::anyResult<()> {
-        println!("{}", IDENTITY);
+Cerberus is primarily known for his capture by Heracles, the last of Heracles' twelve labours.",
+Cerberus = "Cerberus".cyan(),
+greek_cerberus = "Κέρβερος".dimmed().italic(),
+);
         Ok(())
     }
 }
